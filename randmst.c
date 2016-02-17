@@ -4,8 +4,6 @@
 
 #define HEAPEMPTY -1
 
-// heeere's tony's laptop
-
 typedef struct node{
 	float val;
 	struct node* parent;
@@ -19,12 +17,12 @@ typedef struct minheap{
 	int empty;
 }minheap;
 
-void swap(node* p, node* c){
+void swap(node* p, node* c) {
 	c->parent = p->parent;
 	p->parent = c;
 	node* tempcleft = c->left;
 	node* tempcright = c->right;
-	if (p->left == c){
+	if (p->left == c) {
 		c->left = p;
 		c->right = p->right;
 		p->left= tempcleft;
@@ -38,33 +36,97 @@ void swap(node* p, node* c){
 	}
 }
 
-void percolate(minheap* h, node* n){
-
+void percolate(minheap* h, node* n) {
+	node* curr = h->root;
+	// loop_indicate: -1=end loop; 1=left child exists; 2=right; 3=both exist
+	// used to prevent segfaults
+	int loop_indicate = 1;
+	while (loop_indicate != 0) {
+		if (curr->left) {
+			if (curr->right) {
+				// has both children
+				if (curr->left->val < curr->right->val) {
+					if (curr->val > curr->left->val) {
+						// swap, check, continue
+						swap(curr, curr->left);
+						if !(curr->left || curr->right) {
+							loop_indicate = 0;
+						}
+					}
+					else {
+						// curr is the furthest we can put it, we're done
+						loop_indicate = 0;
+					}
+				}
+				else {
+					if (curr->val > curr->right->val) {
+						// swap, check, continue
+						swap(curr, curr->right);
+						if !(curr->left || curr->right) {
+							loop_indicate = 0;
+						}
+					}
+					else {
+						// curr is the furthest we can put it, we're done
+						loop_indicate = 0;
+					}
+				}
+			}
+			else {
+				// only has left child
+				if (curr->val > curr->left->val) {
+					// swap, check, continue
+					swap(curr, curr->left);
+					if !(curr->left || curr->right) {
+						loop_indicate = 0;
+					}
+				}
+				else {
+					// curr is the furthest we can put it, we're done
+					loop_indicate = 0;
+				}
+			}
+		}
+		else if (curr->right) {
+			// only has right child
+			if (curr->val > curr->right->val) {
+				// swap, check, continue
+				swap(curr, curr->right);
+				if !(curr->left || curr->right) {
+					loop_indicate = 0;
+				}
+			}
+			else {
+				// curr is the furthest we can put it, we're done
+				loop_indicate = 0;
+			}
+		}
+	}
 }
 
-float deletemin(minheap* h){
-	if (h->empty){
+float deletemin(minheap* h) {
+	if (h->empty) {
 		return HEAPEMPTY;
 	}
 	x = h->root->val;
-	if (!(h->root->left||h->root->right)){
+	if (!(h->root->left||h->root->right)) {
 		free(h->root);
 		h->root = NULL;
 		h->bottom = NULL;
 		h->empty = 1;
 	}
-	else if (!h->root->left && h->root->right){
+	else if (!h->root->left && h->root->right) {
 		node* temp = h->root->right;
 		free(h->root);
 		h->root = temp;
 	}
-	else if (h->root->left && !h->root->right){
+	else if (h->root->left && !h->root->right) {
 		node* temp = h->root->left;
 		free(h->root);
 		h->root = temp;
 	}
 	else{
-		if (h->root->left->val > h->root->right->val){
+		if (h->root->left->val > h->root->right->val) {
 			node* temp_left = h->root->left;
 			node* temp_right = h->root->right;
 			free(h->root);
@@ -73,8 +135,8 @@ float deletemin(minheap* h){
 	}
 }
 
-int main(int argc, char* argv[]){
-	if (argc != 4){
+int main(int argc, char* argv[]) {
+	if (argc != 4) {
 		printf("Check number of arguments!\n");
 		abort;
 	}
