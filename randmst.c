@@ -11,11 +11,11 @@ typedef graph_node{
 	float dist;
 }graph_node;
 
-typedef struct graph{
-	graph_node**;
+typedef struct graph {
+	graph_node** adjl;
 }graph;
 
-typedef struct node{
+typedef struct node {
 	float val;
 	struct node* parent;
 	struct node* left;
@@ -173,6 +173,31 @@ float deletemin(minheap* h) {
 			h->root = curr;
 			percolate(h);
 		}
+	}
+}
+
+graph initiate_graph(int n, int dim) {
+	// seed pseudorandom number generator
+	srand(time(NULL));
+	graph g;
+
+	if (dim == 0) {
+		for (int i = 0; i < n; i++) {
+			for (int j = 0; j < n; j++) {
+				g[i][j] = rand();
+			}
+		}
+	}
+	else if (dim == 2) {
+		for (int i = 0; i < n; i++) {
+			
+		}
+	}
+	else if (dim == 3){
+
+	}
+	else {
+
 	}
 }
 
