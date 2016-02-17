@@ -3,6 +3,17 @@
 #include <time.h>
 
 #define HEAPEMPTY -1
+typedef graph_node{
+	float x;
+	float y;
+	float z;
+	float w;
+	float dist;
+}graph_node;
+
+typedef struct graph{
+	graph_node**;
+}graph;
 
 typedef struct node{
 	float val;
