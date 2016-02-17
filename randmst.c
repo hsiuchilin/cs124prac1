@@ -119,8 +119,8 @@ float deletemin(minheap* h) {
 	if (h->empty) {
 		return HEAPEMPTY;
 	}
-	x = h->root->val;
-	if (!(h->root->left||h->root->right)) {
+	float x = h->root->val;
+	if (!(h->root->left || h->root->right)) {
 		free(h->root);
 		h->root = NULL;
 		h->bottom = NULL;
@@ -136,12 +136,42 @@ float deletemin(minheap* h) {
 		free(h->root);
 		h->root = temp;
 	}
-	else{
+	else {
 		if (h->root->left->val > h->root->right->val) {
 			node* temp_left = h->root->left;
 			node* temp_right = h->root->right;
 			free(h->root);
-			h->
+			node* curr = temp_left;
+			while (curr->left || curr->right) {
+				if (curr->left) {
+					if (curr->right) {
+						// both children exist, go down through larger child
+						if (curr->left->val > curr->right->val) {
+							curr = curr->left;
+						}
+						else {
+							curr = curr->right;
+						}
+					}
+					else {
+						// only left child exists
+						curr = curr->left;
+					}
+				}
+				else {
+					// only right child exists
+					curr = curr->right;
+				}
+			}
+
+			// now curr is a leaf - make it the root and percolate
+			temp_left->parent = curr;
+			temp_right->parent = curr;
+			curr->left = temp_left;
+			curr->right = temp_right;
+			curr->parent = NULL;
+			h->root = curr;
+			percolate(h);
 		}
 	}
 }
