@@ -4,6 +4,8 @@
 
 #define HEAPEMPTY -1
 
+// heeere's tony's laptop
+
 typedef struct node{
 	float val;
 	struct node* parent;
