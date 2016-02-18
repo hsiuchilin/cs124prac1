@@ -57,31 +57,37 @@ void swap(node* p, node* c) {
 }
 
 void insert (minheap* h, node* n){
-	node* curr = h->root;
-	int active =1;
-	while (active){
-		if (curr->right && curr->left){
-			if (curr->right->val < curr->left->val){
-				curr = curr->left;
+	if (h->empty) {
+		h->root = n;
+		h->empty = 0;
+	}
+	else {
+		node* curr = h->root;
+		int active =1;
+		while (active){
+			if (curr->right && curr->left){
+				if (curr->right->val < curr->left->val){
+					curr = curr->left;
+				}
+				else{
+					curr = curr->right;
+				}
+			}
+			else if (curr->right){
+				curr->left = n;
+				n->parent = curr;
+				active = 0;
+			}
+			else if (curr->left){
+				curr->right = n;
+				n->parent = curr;
+				active = 0;
 			}
 			else{
-				curr = curr->right;
+				curr-> left = n;
+				n->parent = curr;
+				active = 0;
 			}
-		}
-		else if (curr->right){
-			curr->left = n;
-			n->parent = curr;
-			active = 0;
-		}
-		else if (curr->left){
-			curr->right = n;
-			n->parent = curr;
-			active = 0;
-		}
-		else{
-			curr-> left = n;
-			n->parent = curr;
-			active = 0;
 		}
 	}
 }
@@ -310,37 +316,44 @@ int main(int argc, char* argv[]) {
 	// int numtrials = argv[2];
 	// int dimension = argv[3];
 
-	node lltemp = {4, NULL, NULL, NULL};
-	node ltemp= {3, NULL, NULL , NULL};
-	node rtemp= {2, NULL, NULL, NULL};
-	node ntemp= {1, NULL, NULL, NULL};
-	node newtemp = {7, NULL, NULL, NULL};
-	node* l = malloc(sizeof(node));
-	node* r  = malloc(sizeof(node));
-	node* n = malloc(sizeof(node));
-	node* ll = malloc(sizeof(node));
-	node* new = malloc(sizeof(node));
-	memcpy(ll, &lltemp, sizeof(node));
-	memcpy(l, &ltemp, sizeof(node));
-	memcpy(r, &rtemp, sizeof(node));
-	memcpy(n, &ntemp, sizeof(node));
-	memcpy(new, &newtemp, sizeof(node));
-	n->left = l;
-	n->right= r;
-	l->parent = n;
-	r->parent = n;
-	l->right = ll;
-	ll->parent =l;
+	// node lltemp = {4, NULL, NULL, NULL};
+	// node ltemp= {3, NULL, NULL , NULL};
+	// node rtemp= {2, NULL, NULL, NULL};
+	// node ntemp= {1, NULL, NULL, NULL};
+	// node newtemp = {7, NULL, NULL, NULL};
+	// node* l = malloc(sizeof(node));
+	// node* r  = malloc(sizeof(node));
+	// node* n = malloc(sizeof(node));
+	// node* ll = malloc(sizeof(node));
+	// node* new = malloc(sizeof(node));
+	// memcpy(ll, &lltemp, sizeof(node));
+	// memcpy(l, &ltemp, sizeof(node));
+	// memcpy(r, &rtemp, sizeof(node));
+	// memcpy(n, &ntemp, sizeof(node));
+	// memcpy(new, &newtemp, sizeof(node));
+	// n->left = l;
+	// n->right= r;
+	// l->parent = n;
+	// r->parent = n;
+	// l->right = ll;
+	// ll->parent =l;
 	minheap* m = malloc(sizeof(minheap));
-	minheap temp = {n, NULL, 0};
+	minheap temp = {NULL, NULL, 1};
 	memcpy(m, &temp, sizeof(minheap));
 	printf("printing heap\n");
-	heap_printer(m->root);
-	insert(m, new);
+	insert(m, create_node(1.));
+	heap_printer(m->root);	
+	insert(m, create_node(2.));
+	insert(m, create_node(3.));
+	insert(m, create_node(5.));
+	insert(m, create_node(4.));
 	deletemin(m);
 	deletemin(m);
+	deletemin(m);
+	// insert(m, create_node(6.));
+	insert(m, create_node(333.));
+	insert(m, create_node(1.));
 	// deletemin(m);
-	deletemin(m);
 
 	printf("printing new heap\n");
 	heap_printer(m->root);
