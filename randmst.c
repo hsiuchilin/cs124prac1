@@ -30,6 +30,13 @@ typedef struct minheap{
 	int empty;
 }minheap;
 
+node* create_node(float val){
+	node* new = malloc(sizeof(node));
+	node tempnew ={val, NULL, NULL, NULL};
+	memcpy(new, &tempnew, sizeof(node));
+	return new;
+}
+
 void swap(node* p, node* c) {
 	c->parent = p->parent;
 	p->parent = c;
