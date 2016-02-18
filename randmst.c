@@ -1,9 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
 #define HEAPEMPTY -1
-typedef graph_node{
+
+typedef struct graph_node{
 	float x;
 	float y;
 	float z;
@@ -43,15 +45,45 @@ void swap(node* p, node* c) {
 		c->left = p->left;
 		c->right= p;
 		p->left= tempcleft;
-		p->right tempcright;
+		p->right= tempcright;
 	}
 }
 
-void percolate(minheap* h, node* n) {
+void insert (minheap* h, node* n){
 	node* curr = h->root;
-	// loop_indicate: -1=end loop; 1=left child exists; 2=right; 3=both exist
+	int active =1;
+	while (active){
+		if (curr->right && curr->left){
+			if (curr->right->val < curr->left->val){
+				curr = curr->left;
+			}
+			else{
+				curr = curr->right;
+			}
+		}
+		else if (curr->right){
+			curr->left = n;
+			n->parent = curr;
+			active = 0;
+		}
+		else if (curr->left){
+			curr->right = n;
+			n->parent = curr;
+			active = 0;
+		}
+		else{
+			curr-> left = n;
+			n->parent = curr;
+			active = 0;
+		}
+	}
+}
+
+void percolate(minheap* h) {
+	node* curr = h->root;
+	// loop_indicate: -2= first iteration -1=end loop; 1=left child exists; 2=right; 3=both exist
 	// used to prevent segfaults
-	int loop_indicate = 1;
+	int loop_indicate = -2;
 	while (loop_indicate != 0) {
 		if (curr->left) {
 			if (curr->right) {
@@ -59,8 +91,12 @@ void percolate(minheap* h, node* n) {
 				if (curr->left->val < curr->right->val) {
 					if (curr->val > curr->left->val) {
 						// swap, check, continue
+						if (loop_indicate == -2){
+							h->root = curr->left;
+							loop_indicate = 1;
+						}
 						swap(curr, curr->left);
-						if !(curr->left || curr->right) {
+						if (!(curr->left || curr->right)) {
 							loop_indicate = 0;
 						}
 					}
@@ -72,8 +108,12 @@ void percolate(minheap* h, node* n) {
 				else {
 					if (curr->val > curr->right->val) {
 						// swap, check, continue
+						if (loop_indicate == -2){
+							h->root = curr-> right;
+							loop_indicate = 1;
+						}
 						swap(curr, curr->right);
-						if !(curr->left || curr->right) {
+						if (!(curr->left || curr->right)) {
 							loop_indicate = 0;
 						}
 					}
@@ -87,8 +127,12 @@ void percolate(minheap* h, node* n) {
 				// only has left child
 				if (curr->val > curr->left->val) {
 					// swap, check, continue
+					if (loop_indicate == -2){
+						h->root = curr->left;
+						loop_indicate = 1;
+					}
 					swap(curr, curr->left);
-					if !(curr->left || curr->right) {
+					if (!(curr->left || curr->right)){
 						loop_indicate = 0;
 					}
 				}
@@ -102,8 +146,12 @@ void percolate(minheap* h, node* n) {
 			// only has right child
 			if (curr->val > curr->right->val) {
 				// swap, check, continue
+				if (loop_indicate == -2){
+					h->root = curr->right;
+					loop_indicate = 1;
+				}
 				swap(curr, curr->right);
-				if !(curr->left || curr->right) {
+				if (!(curr->left || curr->right)) {
 					loop_indicate = 0;
 				}
 			}
@@ -137,69 +185,112 @@ float deletemin(minheap* h) {
 		h->root = temp;
 	}
 	else {
+		node* temp_left;
+		node* temp_right;
+		free(h->root);
+		node* curr; 
 		if (h->root->left->val > h->root->right->val) {
-			node* temp_left = h->root->left;
-			node* temp_right = h->root->right;
-			free(h->root);
-			node* curr = temp_left;
-			while (curr->left || curr->right) {
-				if (curr->left) {
-					if (curr->right) {
-						// both children exist, go down through larger child
-						if (curr->left->val > curr->right->val) {
-							curr = curr->left;
-						}
-						else {
-							curr = curr->right;
-						}
+			temp_left = h->root->left;	
+			temp_right = h->root->right;
+		}
+		else{
+			temp_left = h->root->right;
+			temp_right = h->root->left;
+		}
+		curr = temp_left;
+		while (curr->left || curr->right) {
+			if (curr->left) {
+				if (curr->right) {
+					// both children exist, go down through larger child
+					if (curr->left->val > curr->right->val) {
+						curr = curr->left;
 					}
 					else {
-						// only left child exists
-						curr = curr->left;
+						curr = curr->right;
 					}
 				}
 				else {
-					// only right child exists
-					curr = curr->right;
+					// only left child exists
+					curr = curr->left;
 				}
 			}
-
-			// now curr is a leaf - make it the root and percolate
-			temp_left->parent = curr;
-			temp_right->parent = curr;
-			curr->left = temp_left;
-			curr->right = temp_right;
-			curr->parent = NULL;
-			h->root = curr;
-			percolate(h);
-		}
-	}
-}
-
-graph initiate_graph(int n, int dim) {
-	// seed pseudorandom number generator
-	srand(time(NULL));
-	graph g;
-
-	if (dim == 0) {
-		for (int i = 0; i < n; i++) {
-			for (int j = 0; j < n; j++) {
-				g[i][j] = rand();
+			else {
+				// only right child exists
+				curr = curr->right;
 			}
 		}
-	}
-	else if (dim == 2) {
-		for (int i = 0; i < n; i++) {
-			
+
+		// now curr is a leaf - make it the root and percolate
+		if (curr->parent && curr->parent != h->root){
+			if (curr->parent->left == curr){
+				curr->parent->left = NULL;
+			}
+			else{
+				curr->parent ->right = NULL;
+			}
 		}
-	}
-	else if (dim == 3){
-
-	}
-	else {
-
+		curr->right = temp_right;
+		temp_right->parent = curr;
+		if (curr != temp_left){
+			curr->left = temp_left;
+		}
+		curr->parent = NULL;
+		h->root = curr;
+		percolate(h);
 	}
 }
+
+void heap_printer (node* n){
+	printf("%f\n", n->val);
+	if(n->left){
+		heap_printer(n->left);
+	}
+	if (n-> right){
+		heap_printer(n->right);
+	}
+}
+
+void heap_checker (node* n){
+	if (n->right){
+		if (n->right->val < n->val){
+			printf("you done goofed \n");
+		}
+		heap_checker(n->right);
+	}
+	if (n->left){
+		if(n->left->val <n->val){
+			printf("youdone goofed\n");
+		}
+		heap_checker(n->left);
+	}
+}
+
+
+
+// graph initiate_graph(int n, int dim) {
+// 	// seed pseudorandom number generator
+// 	srand(time(NULL));
+// 	graph g;
+
+// 	if (dim == 0) {
+// 		for (int i = 0; i < n; i++) {
+// 			for (int j = 0; j < n; j++) {
+// 				g[i][j] = rand();
+// 			}
+// 		}
+// 	}
+// 	else if (dim == 2) {
+// 		for (int i = 0; i < n; i++) {
+			
+// 		}
+// 	}
+// 	else if (dim == 3){
+
+// 	}
+// 	else {
+
+// 	}
+// }
 
 int main(int argc, char* argv[]) {
 	if (argc != 4) {
@@ -209,5 +300,38 @@ int main(int argc, char* argv[]) {
 	int numpoints = argv[1];
 	int numtrials = argv[2];
 	int dimension = argv[3];
+
+	node lltemp = {4, NULL, NULL, NULL};
+	node ltemp= {3, NULL, NULL , NULL};
+	node rtemp= {2, NULL, NULL, NULL};
+	node ntemp= {1, NULL, NULL, NULL};
+	node newtemp = {7, NULL, NULL, NULL};
+	node* l = malloc(sizeof(node));
+	node* r  = malloc(sizeof(node));
+	node* n = malloc(sizeof(node));
+	node* ll = malloc(sizeof(node));
+	node* new = malloc(sizeof(node));
+	memcpy(ll, &lltemp, sizeof(node));
+	memcpy(l, &ltemp, sizeof(node));
+	memcpy(r, &rtemp, sizeof(node));
+	memcpy(n, &ntemp, sizeof(node));
+	memcpy(new, &newtemp, sizeof(node));
+	n->left = l;
+	n->right= r;
+	l->parent = n;
+	r->parent = n;
+	l->right = ll;
+	ll->parent =l;
+	minheap* m = malloc(sizeof(minheap));
+	minheap temp = {n, NULL, 0};
+	memcpy(m, &temp, sizeof(minheap));
+	printf("printing heap\n");
+	heap_printer(m->root);
+	insert(m, new);
+	// deletemin(m);
+	printf("printing new heap\n");
+	heap_printer(m->root);
+	heap_checker(m->root);
+
 
 }
