@@ -5,7 +5,7 @@
 
 #define HEAPEMPTY -1
 
-typedef struct graph_node{
+typedef struct graph_node {
 	float x;
 	float y;
 	float z;
@@ -81,9 +81,9 @@ void insert (minheap* h, node* n){
 
 void percolate(minheap* h) {
 	node* curr = h->root;
-	// loop_indicate: -2= first iteration -1=end loop; 1=left child exists; 2=right; 3=both exist
+	// loop_indicate: -1= first iteration 0=end loop; 1=child exists;
 	// used to prevent segfaults
-	int loop_indicate = -2;
+	int loop_indicate = -1;
 	while (loop_indicate != 0) {
 		if (curr->left) {
 			if (curr->right) {
@@ -91,7 +91,7 @@ void percolate(minheap* h) {
 				if (curr->left->val < curr->right->val) {
 					if (curr->val > curr->left->val) {
 						// swap, check, continue
-						if (loop_indicate == -2){
+						if (loop_indicate == -1){
 							h->root = curr->left;
 							loop_indicate = 1;
 						}
@@ -108,7 +108,7 @@ void percolate(minheap* h) {
 				else {
 					if (curr->val > curr->right->val) {
 						// swap, check, continue
-						if (loop_indicate == -2){
+						if (loop_indicate == -1){
 							h->root = curr-> right;
 							loop_indicate = 1;
 						}
@@ -127,7 +127,7 @@ void percolate(minheap* h) {
 				// only has left child
 				if (curr->val > curr->left->val) {
 					// swap, check, continue
-					if (loop_indicate == -2){
+					if (loop_indicate == -1){
 						h->root = curr->left;
 						loop_indicate = 1;
 					}
@@ -146,7 +146,7 @@ void percolate(minheap* h) {
 			// only has right child
 			if (curr->val > curr->right->val) {
 				// swap, check, continue
-				if (loop_indicate == -2){
+				if (loop_indicate == -1){
 					h->root = curr->right;
 					loop_indicate = 1;
 				}
@@ -238,6 +238,8 @@ float deletemin(minheap* h) {
 		h->root = curr;
 		percolate(h);
 	}
+
+	return x;
 }
 
 void heap_printer (node* n){
@@ -295,11 +297,11 @@ void heap_checker (node* n){
 int main(int argc, char* argv[]) {
 	if (argc != 4) {
 		printf("Check number of arguments!\n");
-		abort;
+		// abort;
 	}
-	int numpoints = argv[1];
-	int numtrials = argv[2];
-	int dimension = argv[3];
+	// int numpoints = argv[1];
+	// int numtrials = argv[2];
+	// int dimension = argv[3];
 
 	node lltemp = {4, NULL, NULL, NULL};
 	node ltemp= {3, NULL, NULL , NULL};
@@ -328,7 +330,11 @@ int main(int argc, char* argv[]) {
 	printf("printing heap\n");
 	heap_printer(m->root);
 	insert(m, new);
+	deletemin(m);
+	deletemin(m);
 	// deletemin(m);
+	deletemin(m);
+
 	printf("printing new heap\n");
 	heap_printer(m->root);
 	heap_checker(m->root);
