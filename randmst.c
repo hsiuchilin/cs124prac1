@@ -55,13 +55,8 @@ float deletemin(minheap* h){
 	if (h->empty){
 		return HEAPEMPTY;
 	}
-<<<<<<< HEAD
-	x = h->root->val;
-	if (!(h->root->left||h->root->right)){
-=======
 	float x = h->root->val;
 	if (!(h->root->left || h->root->right)) {
->>>>>>> ab06600f4392c5db2e0bbc5ce524adf7220840d7
 		free(h->root);
 		h->root = NULL;
 		h->bottom = NULL;
@@ -77,13 +72,8 @@ float deletemin(minheap* h){
 		free(h->root);
 		h->root = temp;
 	}
-<<<<<<< HEAD
-	else{
-		if (h->root->left->val > h->root->right->val){
-=======
 	else {
 		if (h->root->left->val > h->root->right->val) {
->>>>>>> ab06600f4392c5db2e0bbc5ce524adf7220840d7
 			node* temp_left = h->root->left;
 			node* temp_right = h->root->right;
 			free(h->root);
@@ -122,10 +112,6 @@ float deletemin(minheap* h){
 	}
 }
 
-<<<<<<< HEAD
-int main(int argc, char* argv[]){
-	if (argc != 4){
-=======
 graph initiate_graph(int n, int dim) {
 	// seed pseudorandom number generator
 	srand(time(NULL));
@@ -153,7 +139,6 @@ graph initiate_graph(int n, int dim) {
 
 int main(int argc, char* argv[]) {
 	if (argc != 4) {
->>>>>>> ab06600f4392c5db2e0bbc5ce524adf7220840d7
 		printf("Check number of arguments!\n");
 		abort;
 	}
