@@ -65,25 +65,28 @@ void insert (minheap* h, node* n){
 		node* curr = h->root;
 		int active =1;
 		while (active){
-			if (curr->right && curr->left){
-				if (curr->right->val < curr->left->val){
+			if (curr->right && curr->left) {
+				// curr has both children
+				if (curr->right->val < curr->left->val) {
 					curr = curr->left;
 				}
-				else{
+				else {
 					curr = curr->right;
 				}
 			}
-			else if (curr->right){
-				curr->left = n;
-				n->parent = curr;
-				active = 0;
-			}
-			else if (curr->left){
+			// else if (curr->right) {
+			// 	curr->left = n;
+			// 	n->parent = curr;
+			// 	active = 0;
+			// }
+			else if (curr->left) {
+				// curr only has left child
 				curr->right = n;
 				n->parent = curr;
 				active = 0;
 			}
-			else{
+			else {
+				// curr only has right child or no children
 				curr-> left = n;
 				n->parent = curr;
 				active = 0;
