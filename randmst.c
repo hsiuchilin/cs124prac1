@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <math.h>
+#include <limits.h>
 
 #define HEAPEMPTY -1
 
@@ -10,12 +12,11 @@ typedef struct graph_node {
 	float y;
 	float z;
 	float w;
-	float dist;
 }graph_node;
 
-typedef struct graph {
-	graph_node** adjl;
-}graph;
+// typedef struct graph {
+// 	graph_node** adjl;
+// }graph;
 
 typedef struct node {
 	float val;
@@ -24,7 +25,13 @@ typedef struct node {
 	struct node* right;
 }node;
 
-typedef struct minheap{
+typedef struct edge {
+	int source;
+	int target;
+	float weight;
+}edge;
+
+typedef struct minheap {
 	node* root;
 	node* bottom;
 	int empty;
@@ -67,18 +74,34 @@ void insert (minheap* h, node* n){
 		while (active){
 			if (curr->right && curr->left) {
 				// curr has both children
-				if (curr->right->val < curr->left->val) {
-					curr = curr->left;
+				if (n->val > curr->right->val && n->val > curr->left->val) {
+					if (curr->right->val < curr->left->val) {
+						curr = curr->left;
+					}
+					else {
+						curr = curr->right;
+					}
+				}
+				else if (n->val < curr->left->val && curr->left->val > curr->right->val) {
+					n->parent = curr->parent;
+					n->left = curr;
+					curr->parent = n;
+					active = 0;
+				}
+				else if (n->val < curr->right->val && curr->right->val > curr->left->val) {
+					n->parent = curr->parent;
+					n->right = curr;
+					curr->parent = n;
+					active = 0;
 				}
 				else {
-					curr = curr->right;
+					// curr should be swapped with n
+					n->parent = curr->parent;
+					n->left = curr;
+					curr->parent = n;
+					active = 0;
 				}
 			}
-			// else if (curr->right) {
-			// 	curr->left = n;
-			// 	n->parent = curr;
-			// 	active = 0;
-			// }
 			else if (curr->left) {
 				// curr only has left child
 				curr->right = n;
@@ -285,61 +308,102 @@ void heap_checker (node* n){
 
 
 
-// graph initiate_graph(int n, int dim) {
-// 	// seed pseudorandom number generator
-// 	srand(time(NULL));
-// 	graph g;
+edge **initiate_graph(int n_points, int dim, graph_node* point_array) {
+	// seed pseudorandom number generator
+	srand(time(NULL));
+	edge** g = malloc(sizeof(edge*)*n_points);
+	point_array= malloc(sizeof(graph_node) * n_points);
+	if (dim == 0) {
+		for (int i = 0; i < n_points; i++) {
+			g[i] = malloc(sizeof(edge)*n_points);
+			for (int j = 0; j < n_points; j++) {
+				g[i][j].weight = rand() / (float)RAND_MAX;
+				g[i][j].source = i;
+				g[i][j].target = j;
+			}
+		}
+	}
+	else if (dim == 1) {
+		for (int i = 0; i < n_points; i++) {
+			point_array[i].x = rand() / (float)RAND_MAX;
+			point_array[i].y = rand() / (float)RAND_MAX;
+			point_array[i].z = 0;
+			point_array[i].w = 0;
+		}
+		for (int i = 0; i < n_points; i++) {
+			g[i] = malloc(sizeof(edge)*n_points);
+			for (int j = 0; j < n_points; j++) {
+				g[i][j].weight = sqrt(pow(point_array[i].x- point_array[j].x, 2)
+					+ pow(point_array[i].y-point_array[j].y, 2));
+				g[i][j].source = i;
+				g[i][j].target = j;
+			}
+		}
+	}
+	else if (dim == 3) {
+		for (int i = 0; i < n_points; i++) {
+			point_array[i].x = rand() / (float)RAND_MAX;
+			point_array[i].y = rand() / (float)RAND_MAX;
+			point_array[i].z = rand() / (float)RAND_MAX;
+			point_array[i].w = 0;
+		}
+		for (int i = 0; i < n_points; i++) {
+			g[i] = malloc(sizeof(float)*n_points);
+			for (int j = 0; j < n_points; j++) {
+				g[i][j].weight = sqrt(pow(point_array[i].x- point_array[j].x, 2)
+					+ pow(point_array[i].y-point_array[j].y, 2)
+					+ pow(point_array[i].z-point_array[j].z, 2));
+				g[i][j].source = i;
+				g[i][j].target = j;
+			}
+		}
+	}
+	else {
+		for (int i = 0; i < n_points; i++) {
+			point_array[i].x = rand() / (float)RAND_MAX;
+			point_array[i].y = rand() / (float)RAND_MAX;
+			point_array[i].z = rand() / (float)RAND_MAX;
+			point_array[i].w = rand() / (float)RAND_MAX;
+		}
+		for (int i = 0; i < n_points; i++) {
+			g[i] = malloc(sizeof(float)*n_points);
+			for (int j = 0; j < n_points; j++) {
+				g[i][j].weight = sqrt(pow(point_array[i].x - point_array[j].x, 2)
+					+ pow(point_array[i].y - point_array[j].y, 2)
+					+ pow(point_array[i].z - point_array[j].z, 2)
+					+ pow(point_array[i].w - point_array[j].w, 2));
+				g[i][j].source = i;
+				g[i][j].target = j;
+			}
+		}
+	}
 
-// 	if (dim == 0) {
-// 		for (int i = 0; i < n; i++) {
-// 			for (int j = 0; j < n; j++) {
-// 				g[i][j] = rand();
-// 			}
-// 		}
-// 	}
-// 	else if (dim == 2) {
-// 		for (int i = 0; i < n; i++) {
-			
-// 		}
-// 	}
-// 	else if (dim == 3){
+	return g;
+}
 
-// 	}
-// 	else {
+edge *prim(edge **g, graph_node* point_array, int numpoints, edge *edge_array) {
+	// initialize heap
+	minheap* m = malloc(sizeof(minheap));
+	minheap temp = {NULL, NULL, 1};
+	memcpy(m, &temp, sizeof(minheap));
 
-// 	}
-// }
+	int dist[num_v]; 
+	graph_node prev[num_v];
+
+	for (int i = 0; i < num_v; i++;) {
+		dist[i] = INT_MAX;
+		prev[i] = NULL;
+	}
+
+
+}
 
 int main(int argc, char* argv[]) {
 	if (argc != 4) {
 		printf("Check number of arguments!\n");
 		// abort;
 	}
-	// int numpoints = argv[1];
-	// int numtrials = argv[2];
-	// int dimension = argv[3];
 
-	// node lltemp = {4, NULL, NULL, NULL};
-	// node ltemp= {3, NULL, NULL , NULL};
-	// node rtemp= {2, NULL, NULL, NULL};
-	// node ntemp= {1, NULL, NULL, NULL};
-	// node newtemp = {7, NULL, NULL, NULL};
-	// node* l = malloc(sizeof(node));
-	// node* r  = malloc(sizeof(node));
-	// node* n = malloc(sizeof(node));
-	// node* ll = malloc(sizeof(node));
-	// node* new = malloc(sizeof(node));
-	// memcpy(ll, &lltemp, sizeof(node));
-	// memcpy(l, &ltemp, sizeof(node));
-	// memcpy(r, &rtemp, sizeof(node));
-	// memcpy(n, &ntemp, sizeof(node));
-	// memcpy(new, &newtemp, sizeof(node));
-	// n->left = l;
-	// n->right= r;
-	// l->parent = n;
-	// r->parent = n;
-	// l->right = ll;
-	// ll->parent =l;
 	minheap* m = malloc(sizeof(minheap));
 	minheap temp = {NULL, NULL, 1};
 	memcpy(m, &temp, sizeof(minheap));
@@ -353,10 +417,10 @@ int main(int argc, char* argv[]) {
 	deletemin(m);
 	deletemin(m);
 	deletemin(m);
-	// insert(m, create_node(6.));
+	insert(m, create_node(6.));
 	insert(m, create_node(333.));
-	insert(m, create_node(1.));
-	// deletemin(m);
+	insert(m, create_node(5.));
+	deletemin(m);
 
 	printf("printing new heap\n");
 	heap_printer(m->root);
