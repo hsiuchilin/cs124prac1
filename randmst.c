@@ -436,6 +436,8 @@ float prim(edge** g, graph_node* point_array, int numpoints, edge* edge_array, i
 			}
 		}
 	}
+
+	return return_weight;
 }
 
 int main(int argc, char* argv[]) {
