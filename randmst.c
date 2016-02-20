@@ -347,6 +347,7 @@ int main(int argc, char* argv[]) {
 	insert(m, create_node(3.));
 	insert(m, create_node(5.));
 	insert(m, create_node(4.));
+	heap_checker(m->root);
 	deletemin(m);
 	deletemin(m);
 	deletemin(m);
