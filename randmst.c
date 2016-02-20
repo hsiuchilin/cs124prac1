@@ -18,18 +18,19 @@ typedef struct graph_node {
 // 	graph_node** adjl;
 // }graph;
 
-typedef struct node {
-	float val;
-	struct node* parent;
-	struct node* left;
-	struct node* right;
-}node;
-
 typedef struct edge {
 	int source;
 	int target;
 	float weight;
 }edge;
+
+typedef struct node {
+	float val;
+	struct node* parent;
+	struct node* left;
+	struct node* right;
+	edge* assoc_edge;
+}node;
 
 typedef struct minheap {
 	node* root;
@@ -37,9 +38,9 @@ typedef struct minheap {
 	int empty;
 }minheap;
 
-node* create_node(float val){
+node* create_node(float val, edge* e) {
 	node* new = malloc(sizeof(node));
-	node tempnew ={val, NULL, NULL, NULL};
+	node tempnew ={val, NULL, NULL, NULL, e};
 	memcpy(new, &tempnew, sizeof(node));
 	return new;
 }
@@ -202,11 +203,13 @@ void percolate(minheap* h) {
 	}
 }
 
-float deletemin(minheap* h) {
+node* deletemin(minheap* h) {
 	if (h->empty) {
-		return HEAPEMPTY;
+		return NULL;
 	}
-	float x = h->root->val;
+	node* return_node = malloc(sizeof(node));
+	memcpy(return_node, h->root, sizeof(node));
+	// float x = h->root->val;
 	if (!(h->root->left || h->root->right)) {
 		free(h->root);
 		h->root = NULL;
@@ -278,7 +281,7 @@ float deletemin(minheap* h) {
 		percolate(h);
 	}
 
-	return x;
+	return return_node;
 }
 
 void heap_printer (node* n){
@@ -307,10 +310,10 @@ void heap_checker (node* n){
 }
 
 
-
 edge **initiate_graph(int n_points, int dim, graph_node* point_array) {
 	// seed pseudorandom number generator
 	srand(time(NULL));
+
 	edge** g = malloc(sizeof(edge*)*n_points);
 	point_array= malloc(sizeof(graph_node) * n_points);
 	if (dim == 0) {
@@ -381,21 +384,58 @@ edge **initiate_graph(int n_points, int dim, graph_node* point_array) {
 	return g;
 }
 
-edge *prim(edge **g, graph_node* point_array, int numpoints, edge *edge_array) {
+int array_inclusion(graph_node* node_array, int num_v, graph_node* check) {
+	for (int i = 0; i < num_v; i++) {
+		if (node_array[i].x == check->x && node_array[i].y == check->y && node_array[i].z == check->z && node_array[i].w == check->w) {
+			return 1;
+		}
+	}
+	return 0;
+}
+
+float prim(edge** g, graph_node* point_array, int numpoints, edge* edge_array, int s_index) {
 	// initialize heap
 	minheap* m = malloc(sizeof(minheap));
 	minheap temp = {NULL, NULL, 1};
 	memcpy(m, &temp, sizeof(minheap));
 
-	int dist[num_v]; 
-	graph_node prev[num_v];
+	insert(m, create_node(edge_array[s_index].weight, &edge_array[s_index]));
 
-	for (int i = 0; i < num_v; i++;) {
+	// instantiate list of edges to return
+	int num_edges = numpoints * (numpoints-1) / 2;
+	// edge return_edges[num_edges];
+
+	// S
+	graph_node explored_v[numpoints];
+	int explored_i = 0;
+
+	float return_weight = 0.0;
+
+	int dist[numpoints];
+	// graph_node prev[numpoints];
+
+	for (int i = 0; i < numpoints; i++) {
 		dist[i] = INT_MAX;
-		prev[i] = NULL;
+		// prev[i] = NULL;
 	}
 
+	dist[s_index] = 0;
 
+	while (!m->empty) {
+		node* deleted = deletemin(m);
+		return_weight += deleted->val;
+		explored_v[explored_i] = point_array[deleted->assoc_edge->target];
+		explored_i++;
+		for (int e = 0; e < num_edges; e++) {
+			if (!array_inclusion(explored_v, explored_i, edge_array[e])) {
+				if (dist[e] > edge_array[e]) {
+					dist[e] = edge_array[e];
+
+					insert(edge_array[e].weight,edge_array[e]);
+				}
+			}
+		}
+	}
 }
 
 int main(int argc, char* argv[]) {
@@ -404,27 +444,27 @@ int main(int argc, char* argv[]) {
 		// abort;
 	}
 
-	minheap* m = malloc(sizeof(minheap));
-	minheap temp = {NULL, NULL, 1};
-	memcpy(m, &temp, sizeof(minheap));
-	printf("printing heap\n");
-	insert(m, create_node(1.));
-	heap_printer(m->root);	
-	insert(m, create_node(2.));
-	insert(m, create_node(3.));
-	insert(m, create_node(5.));
-	insert(m, create_node(4.));
-	deletemin(m);
-	deletemin(m);
-	deletemin(m);
-	insert(m, create_node(6.));
-	insert(m, create_node(333.));
-	insert(m, create_node(5.));
-	deletemin(m);
+	// minheap* m = malloc(sizeof(minheap));
+	// minheap temp = {NULL, NULL, 1};
+	// memcpy(m, &temp, sizeof(minheap));
+	// printf("printing heap\n");
+	// insert(m, create_node(1.));
+	// heap_printer(m->root);	
+	// insert(m, create_node(2.));
+	// insert(m, create_node(3.));
+	// insert(m, create_node(5.));
+	// insert(m, create_node(4.));
+	// deletemin(m);
+	// deletemin(m);
+	// deletemin(m);
+	// insert(m, create_node(6.));
+	// insert(m, create_node(333.));
+	// insert(m, create_node(5.));
+	// deletemin(m);
 
-	printf("printing new heap\n");
-	heap_printer(m->root);
-	heap_checker(m->root);
+	// printf("printing new heap\n");
+	// heap_printer(m->root);
+	// heap_checker(m->root);
 
 
 }
