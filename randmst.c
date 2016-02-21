@@ -460,8 +460,8 @@ float prim(edge** g, graph_node* point_array, int numpoints, int v_index) {
 			// if (dist[e] > deleted->val) {
 				// dist[e] = deleted->val;
 			for (int i =0; i<numpoints; i++) {
-						insert(m, create_node(&g[e][i]));
-						heap_checker(m->root);
+				insert(m, create_node(&g[e][i]));
+				heap_checker(m->root);
 			}
 			if (e!= deleted->assoc_edge->source){
 				return_weight += deleted->val;
@@ -490,11 +490,11 @@ int main(int argc, char* argv[]) {
 	printf("%f: from %i to %i\n", g[1][0].weight, g[1][0].source, g[1][0].target);
 	printf("%f: from %i to %i\n", g[1][1].weight, g[1][1].source, g[1][1].target);
 
-	printf("%f: from %i to %i\n", g[0][2].weight, g[0][2].source, g[0][2].target);
-	printf("%f: from %i to %i\n", g[1][2].weight, g[1][2].source, g[1][2].target);
-	printf("%f: from %i to %i\n", g[2][0].weight, g[2][0].source, g[2][0].target);
-	printf("%f: from %i to %i\n", g[2][1].weight, g[2][1].source, g[2][1].target);
-	printf("%f: from %i to %i\n", g[2][2].weight, g[2][2].source, g[2][2].target);
+	// printf("%f: from %i to %i\n", g[0][2].weight, g[0][2].source, g[0][2].target);
+	// printf("%f: from %i to %i\n", g[1][2].weight, g[1][2].source, g[1][2].target);
+	// printf("%f: from %i to %i\n", g[2][0].weight, g[2][0].source, g[2][0].target);
+	// printf("%f: from %i to %i\n", g[2][1].weight, g[2][1].source, g[2][1].target);
+	// printf("%f: from %i to %i\n", g[2][2].weight, g[2][2].source, g[2][2].target);
 
 
 	float total = prim(g, parray, numpoints, 0);
