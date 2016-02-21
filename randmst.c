@@ -111,7 +111,7 @@ void insert (minheap* h, node* n){
 			}
 			else {
 				// curr only has right child or no children
-				curr-> left = n;
+				curr->left = n;
 				n->parent = curr;
 				active = 0;
 			}
