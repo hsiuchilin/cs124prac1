@@ -351,14 +351,11 @@ edge **initiate_graph(int n_points, int dim, graph_node* point_array) {
 	if (dim == 0) {
 
 		for (int i = 0; i < n_points; i++) {
+			g[i] = malloc(sizeof(edge)*(n_points - i));
 			for (int j = i; j < n_points; j++) {
 				g[i][j].weight = rand() / (float)RAND_MAX;
 				g[i][j].source = i;
 				g[i][j].target = j;
-
-				g[j][i].weight = g[i][j].weight;
-				g[j][i].source = j;
-				g[j][i].target = i;
 			}
 		}
 	}

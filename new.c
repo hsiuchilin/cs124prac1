@@ -89,26 +89,17 @@ void heap_printer (heap* h) {
 edge **initiate_graph(int n_points, int dim, graph_node* point_array) {
 	// seed pseudorandom number generator
 	srand(time(NULL));
-
-	printf("initiate\n");
-
+	printf("initialize\n");
 	edge** g = malloc(sizeof(edge*)*n_points);
 	point_array= malloc(sizeof(graph_node) * n_points);
-	for (int i = 0; i < n_points; i++) {
-		g[i] = malloc(sizeof(edge)*n_points);
-	}
-
 	if (dim == 0) {
 
 		for (int i = 0; i < n_points; i++) {
-			for (int j = i; j < n_points; j++) {
+			g[i] = malloc(sizeof(edge)*(n_points-i));
+			for (int j = 0; j < (n_points-i); j++) {
 				g[i][j].weight = rand() / (float)RAND_MAX;
 				g[i][j].source = i;
 				g[i][j].target = j;
-
-				g[j][i].weight = g[i][j].weight;
-				g[j][i].source = j;
-				g[j][i].target = i;
 			}
 		}
 	}
@@ -176,20 +167,18 @@ edge **initiate_graph(int n_points, int dim, graph_node* point_array) {
 		}
 	}
 
-	free(point_array);
-
 	return g;
 }
 
 float prim(edge** g, graph_node* point_array, int numpoints, int v_index) {
-	// printf("Beginning Prim\n");
+	printf("Beginning Prim\n");
 	// initialize heap
 	int numedges = numpoints *(numpoints-1)/2;
 	heap* m = malloc(sizeof(heap));
 	m->heap_size =0;
 	m->h = malloc(sizeof(edge)*numedges);
 	insert(m, &g[v_index][v_index]);
-
+	printf("hi\n");
 	// S
 	int explored_v[numpoints];
 
@@ -212,7 +201,20 @@ float prim(edge** g, graph_node* point_array, int numpoints, int v_index) {
 			for (int i = 0; i < numpoints; i++) {
 				if (!explored_v[i]) {
 					// printf("pushing node %i, of value %f\n", i, g[e][i].weight);
-					insert(m, &g[e][i]);
+					if (e <= i) {
+						i = i-e;
+						insert(m, &g[e][i]);
+					}
+					else{
+						int a = e;
+						e = i-e;
+						i = a;
+						edge temp = g[e][i];
+						int b = temp.source;
+						temp.source = temp.target;
+						temp.target = b;
+						insert(m, &temp);
+					}
 				}	
 			}
 			if (e!= deleted.source){
@@ -230,7 +232,7 @@ float prim(edge** g, graph_node* point_array, int numpoints, int v_index) {
 
 
 int main(int argc, char* argv[]) {
-	if (argc != 4) {
+	if (argc != 5) {
 		printf("Check number of arguments!\n");
 		// abort;
 	}
