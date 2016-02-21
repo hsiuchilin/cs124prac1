@@ -168,12 +168,18 @@ void insert (minheap* h, node* n) {
 					}
 				}
 				else if (n->val < curr->left->val && curr->left->val > curr->right->val) {
+					if (h->root == curr){
+						h->root = n;
+					}
 					n->parent = curr->parent;
 					n->left = curr;
 					curr->parent = n;
 					active = 0;
 				}
 				else if (n->val < curr->right->val && curr->right->val > curr->left->val) {
+					if (h->root == curr){
+						h->root = n;
+					}
 					n->parent = curr->parent;
 					n->right = curr;
 					curr->parent = n;
@@ -181,6 +187,9 @@ void insert (minheap* h, node* n) {
 				}
 				else {
 					// curr should be swapped with n
+					if (h->root == curr){
+						h->root = n;
+					}
 					n->parent = curr->parent;
 					n->left = curr;
 					curr->parent = n;
@@ -230,7 +239,7 @@ node* deletemin(minheap* h) {
 	else {
 		node* temp_left;
 		node* temp_right;
-		free(h->root);
+		// free(h->root);
 		node* curr; 
 		if (h->root->left->val > h->root->right->val) {
 			temp_left = h->root->left;	
@@ -278,6 +287,7 @@ node* deletemin(minheap* h) {
 			curr->left = temp_left;
 		}
 		curr->parent = NULL;
+		free(h->root);
 		h->root = curr;
 		percolate(h);
 	}
@@ -285,12 +295,12 @@ node* deletemin(minheap* h) {
 	return return_node;
 }
 
-void heap_printer (node* n){
+void heap_printer (node* n) {
 	printf("%f\n", n->val);
-	if(n->left){
+	if (n->left) {
 		heap_printer(n->left);
 	}
-	if (n-> right){
+	if (n-> right) {
 		heap_printer(n->right);
 	}
 }
@@ -463,6 +473,7 @@ float prim(edge** g, graph_node* point_array, int numpoints, int v_index) {
 					insert(m, create_node(&g[e][i]));
 				}	
 			}
+			heap_printer(m->root);
 			heap_checker(m->root);
 
 			if (e!= deleted->assoc_edge->source){
