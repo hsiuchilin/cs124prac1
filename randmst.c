@@ -64,61 +64,6 @@ void swap(node* p, node* c) {
 	}
 }
 
-void insert (minheap* h, node* n){
-	if (h->empty) {
-		h->root = n;
-		h->empty = 0;
-	}
-	else {
-		node* curr = h->root;
-		int active = 1;
-		while (active) {
-			if (curr->right && curr->left) {
-				// curr has both children
-				if (n->val > curr->right->val && n->val > curr->left->val) {
-					if (curr->right->val < curr->left->val) {
-						curr = curr->left;
-					}
-					else {
-						curr = curr->right;
-					}
-				}
-				else if (n->val < curr->left->val && curr->left->val > curr->right->val) {
-					n->parent = curr->parent;
-					n->left = curr;
-					curr->parent = n;
-					active = 0;
-				}
-				else if (n->val < curr->right->val && curr->right->val > curr->left->val) {
-					n->parent = curr->parent;
-					n->right = curr;
-					curr->parent = n;
-					active = 0;
-				}
-				else {
-					// curr should be swapped with n
-					n->parent = curr->parent;
-					n->left = curr;
-					curr->parent = n;
-					active = 0;
-				}
-			}
-			else if (curr->left) {
-				// curr only has left child
-				curr->right = n;
-				n->parent = curr;
-				active = 0;
-			}
-			else {
-				// curr only has right child or no children
-				curr->left = n;
-				n->parent = curr;
-				active = 0;
-			}
-		}
-	}
-}
-
 void percolate(minheap* h) {
 	node* curr = h->root;
 	// loop_indicate: -1= first iteration 0=end loop; 1=child exists;
@@ -200,6 +145,62 @@ void percolate(minheap* h) {
 				loop_indicate = 0;
 			}
 		}
+	}
+}
+
+void insert (minheap* h, node* n){
+	if (h->empty) {
+		h->root = n;
+		h->empty = 0;
+	}
+	else {
+		node* curr = h->root;
+		int active = 1;
+		while (active) {
+			if (curr->right && curr->left) {
+				// curr has both children
+				if (n->val > curr->right->val && n->val > curr->left->val) {
+					if (curr->right->val < curr->left->val) {
+						curr = curr->left;
+					}
+					else {
+						curr = curr->right;
+					}
+				}
+				else if (n->val < curr->left->val && curr->left->val > curr->right->val) {
+					n->parent = curr->parent;
+					n->left = curr;
+					curr->parent = n;
+					active = 0;
+				}
+				else if (n->val < curr->right->val && curr->right->val > curr->left->val) {
+					n->parent = curr->parent;
+					n->right = curr;
+					curr->parent = n;
+					active = 0;
+				}
+				else {
+					// curr should be swapped with n
+					n->parent = curr->parent;
+					n->left = curr;
+					curr->parent = n;
+					active = 0;
+				}
+			}
+			else if (curr->left) {
+				// curr only has left child
+				curr->right = n;
+				n->parent = curr;
+				active = 0;
+			}
+			else {
+				// curr only has right child or no children
+				curr-> left = n;
+				n->parent = curr;
+				active = 0;
+			}
+		}
+		percolate(h);
 	}
 }
 
@@ -303,6 +304,7 @@ void heap_checker (node* n){
 	}
 	if (n->left){
 		if(n->left->val <n->val){
+			printf("parent:%f\n left: %f\n", n->val,n->left->val);
 			printf("youdone goofed\n");
 		}
 		heap_checker(n->left);
@@ -462,9 +464,10 @@ float prim(edge** g, graph_node* point_array, int numpoints, int v_index) {
 			for (int i =0; i<numpoints; i++) {
 				if (!explored_v[i]) {
 						insert(m, create_node(&g[e][i]));
-						heap_checker(m->root);
-					}
+				}	
 			}
+						heap_checker(m->root);
+
 			if (e!= deleted->assoc_edge->source){
 				return_weight += deleted->val;
 			}
@@ -497,6 +500,14 @@ int main(int argc, char* argv[]) {
 	printf("%f: from %i to %i\n", g[2][0].weight, g[2][0].source, g[2][0].target);
 	printf("%f: from %i to %i\n", g[2][1].weight, g[2][1].source, g[2][1].target);
 	printf("%f: from %i to %i\n", g[2][2].weight, g[2][2].source, g[2][2].target);
+
+	// printf("%f: from %i to %i\n", g[0][3].weight, g[0][3].source, g[0][3].target);
+	// printf("%f: from %i to %i\n", g[1][3].weight, g[1][3].source, g[1][3].target);
+	// printf("%f: from %i to %i\n", g[2][3].weight, g[2][3].source, g[2][3].target);
+	// printf("%f: from %i to %i\n", g[3][0].weight, g[3][0].source, g[3][0].target);
+	// printf("%f: from %i to %i\n", g[3][1].weight, g[3][1].source, g[3][1].target);
+	// printf("%f: from %i to %i\n", g[3][2].weight, g[3][2].source, g[3][2].target);
+	// printf("%f: from %i to %i\n", g[3][3].weight, g[3][3].source, g[3][3].target);
 
 
 	float total = prim(g, parray, numpoints, 0);
