@@ -71,8 +71,8 @@ void insert (minheap* h, node* n){
 	}
 	else {
 		node* curr = h->root;
-		int active =1;
-		while (active){
+		int active = 1;
+		while (active) {
 			if (curr->right && curr->left) {
 				// curr has both children
 				if (n->val > curr->right->val && n->val > curr->left->val) {
@@ -136,7 +136,6 @@ void percolate(minheap* h) {
 							loop_indicate = 1;
 						}
 						swap(curr, curr->left);
-						curr = curr->left;
 						if (!(curr->left || curr->right)) {
 							loop_indicate = 0;
 						}
@@ -149,8 +148,8 @@ void percolate(minheap* h) {
 				else {
 					if (curr->val > curr->right->val) {
 						// swap, check, continue
-						if (loop_indicate == -1){
-							h->root = curr-> right;
+						if (loop_indicate == -1) {
+							h->root = curr->right;
 							loop_indicate = 1;
 						}
 						swap(curr, curr->right);
@@ -173,7 +172,7 @@ void percolate(minheap* h) {
 						loop_indicate = 1;
 					}
 					swap(curr, curr->left);
-					if (!(curr->left || curr->right)){
+					if (!(curr->left || curr->right)) {
 						loop_indicate = 0;
 					}
 				}
@@ -319,13 +318,21 @@ edge **initiate_graph(int n_points, int dim, graph_node* point_array) {
 
 	edge** g = malloc(sizeof(edge*)*n_points);
 	point_array= malloc(sizeof(graph_node) * n_points);
+	for (int i = 0; i < n_points; i++) {
+		g[i] = malloc(sizeof(edge)*n_points);
+	}
+
 	if (dim == 0) {
+
 		for (int i = 0; i < n_points; i++) {
-			g[i] = malloc(sizeof(edge)*n_points);
-			for (int j = 0; j < n_points; j++) {
+			for (int j = i; j < n_points; j++) {
 				g[i][j].weight = rand() / (float)RAND_MAX;
 				g[i][j].source = i;
 				g[i][j].target = j;
+
+				g[j][i].weight = g[i][j].weight;
+				g[j][i].source = j;
+				g[j][i].target = i;
 			}
 		}
 	}
@@ -337,12 +344,15 @@ edge **initiate_graph(int n_points, int dim, graph_node* point_array) {
 			point_array[i].w = 0;
 		}
 		for (int i = 0; i < n_points; i++) {
-			g[i] = malloc(sizeof(edge)*n_points);
-			for (int j = 0; j < n_points; j++) {
+			for (int j = i; j < n_points; j++) {
 				g[i][j].weight = sqrt(pow(point_array[i].x- point_array[j].x, 2)
 					+ pow(point_array[i].y-point_array[j].y, 2));
 				g[i][j].source = i;
 				g[i][j].target = j;
+
+				g[j][i].weight = g[i][j].weight;
+				g[j][i].source = j;
+				g[j][i].target = i;
 			}
 		}
 	}
@@ -354,13 +364,16 @@ edge **initiate_graph(int n_points, int dim, graph_node* point_array) {
 			point_array[i].w = 0;
 		}
 		for (int i = 0; i < n_points; i++) {
-			g[i] = malloc(sizeof(float)*n_points);
-			for (int j = 0; j < n_points; j++) {
+			for (int j = i; j < n_points; j++) {
 				g[i][j].weight = sqrt(pow(point_array[i].x- point_array[j].x, 2)
 					+ pow(point_array[i].y-point_array[j].y, 2)
 					+ pow(point_array[i].z-point_array[j].z, 2));
 				g[i][j].source = i;
 				g[i][j].target = j;
+
+				g[j][i].weight = g[i][j].weight;
+				g[j][i].source = j;
+				g[j][i].target = i;
 			}
 		}
 	}
@@ -372,14 +385,17 @@ edge **initiate_graph(int n_points, int dim, graph_node* point_array) {
 			point_array[i].w = rand() / (float)RAND_MAX;
 		}
 		for (int i = 0; i < n_points; i++) {
-			g[i] = malloc(sizeof(float)*n_points);
-			for (int j = 0; j < n_points; j++) {
+			for (int j = i; j < n_points; j++) {
 				g[i][j].weight = sqrt(pow(point_array[i].x - point_array[j].x, 2)
 					+ pow(point_array[i].y - point_array[j].y, 2)
 					+ pow(point_array[i].z - point_array[j].z, 2)
 					+ pow(point_array[i].w - point_array[j].w, 2));
 				g[i][j].source = i;
 				g[i][j].target = j;
+
+				g[j][i].weight = g[i][j].weight;
+				g[j][i].source = j;
+				g[j][i].target = i;
 			}
 		}
 	}
@@ -404,11 +420,11 @@ float prim(edge** g, graph_node* point_array, int numpoints, int v_index) {
 	memcpy(m, &temp, sizeof(minheap));
 
 	// initialize heap with self-loop to root vertex
-	edge *start_edge = malloc(sizeof(edge));
-	start_edge->weight = 0;
-	start_edge->source = v_index;
-	start_edge->target = v_index;
-	insert(m, create_node(start_edge));
+	// edge *start_edge = malloc(sizeof(edge));
+	// start_edge->weight = 0;
+	// start_edge->source = v_index;
+	// start_edge->target = v_index;
+	insert(m, create_node(&g[v_index][v_index]));
 
 	// instantiate list of edges to return
 	// edge return_edges[num_edges];
@@ -422,7 +438,6 @@ float prim(edge** g, graph_node* point_array, int numpoints, int v_index) {
 		explored_v[i] = 0;
 	}
 	// int explored_i = 0;
-
 	float return_weight = 0.0;
 
 	int dist[numpoints];
@@ -430,34 +445,31 @@ float prim(edge** g, graph_node* point_array, int numpoints, int v_index) {
 
 	for (int i = 0; i < numpoints; i++) {
 		dist[i] = INT_MAX - 1;
-		// prev[i] = NULL;
+		explored_v[i]=0;
 	}
 
 	dist[v_index] = 0;
 
 	while (!m->empty) {
-		printf("hi\n");
-
 		node* deleted = deletemin(m);
-		// explored_v[explored_i] = point_array[deleted->assoc_edge->target];
-		// explored_i++;
 		int e = deleted->assoc_edge->target;
-		printf("e: %d\n", e);
-		printf("explored?: %i\n", !explored_v[e]);
+		// printf("e: %d\n", e);
 		if (!explored_v[e]) {
+
 			explored_v[e] = 1;
-			printf("wait %i\n", dist[e]);
-			if (dist[e] > deleted->val) {
-				dist[e] = deleted->val;
-				return_weight += deleted->val;
-				for (int i =0; i<numpoints; i++) {
-					printf("check source: %i\n", g[e][i].source);
-					if (g[e][i].source == e) {
-						printf("insert this: %f from %i to %i\n", g[e][i].weight, g[e][i].source, g[e][i].target);
+			// if (dist[e] > deleted->val) {
+				// dist[e] = deleted->val;
+			for (int i =0; i<numpoints; i++) {
+				if (!explored_v[i]) {
 						insert(m, create_node(&g[e][i]));
+						heap_checker(m->root);
 					}
-				}
 			}
+			if (e!= deleted->assoc_edge->source){
+				return_weight += deleted->val;
+			}
+			printf("return weight: %f\n", return_weight);
+			// }
 		}	
 	}
 
@@ -479,6 +491,13 @@ int main(int argc, char* argv[]) {
 	printf("%f: from %i to %i\n", g[0][1].weight, g[0][1].source, g[0][1].target);
 	printf("%f: from %i to %i\n", g[1][0].weight, g[1][0].source, g[1][0].target);
 	printf("%f: from %i to %i\n", g[1][1].weight, g[1][1].source, g[1][1].target);
+
+	printf("%f: from %i to %i\n", g[0][2].weight, g[0][2].source, g[0][2].target);
+	printf("%f: from %i to %i\n", g[1][2].weight, g[1][2].source, g[1][2].target);
+	printf("%f: from %i to %i\n", g[2][0].weight, g[2][0].source, g[2][0].target);
+	printf("%f: from %i to %i\n", g[2][1].weight, g[2][1].source, g[2][1].target);
+	printf("%f: from %i to %i\n", g[2][2].weight, g[2][2].source, g[2][2].target);
+
 
 	float total = prim(g, parray, numpoints, 0);
 	printf("%f heavy fat woman\n", total);
