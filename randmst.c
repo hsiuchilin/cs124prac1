@@ -64,6 +64,90 @@ void swap(node* p, node* c) {
 	}
 }
 
+void percolate(minheap* h) {
+	node* curr = h->root;
+	// loop_indicate: -1= first iteration 0=end loop; 1=child exists;
+	// used to prevent segfaults
+	int loop_indicate = -1;
+	while (loop_indicate != 0) {
+		if (curr->left) {
+			if (curr->right) {
+				// has both children
+				if (curr->left->val < curr->right->val) {
+					if (curr->val > curr->left->val) {
+						// swap, check, continue
+						if (loop_indicate == -1) {
+							h->root = curr->left;
+							loop_indicate = 1;
+						}
+						swap(curr, curr->left);
+						if (!(curr->left || curr->right)) {
+							loop_indicate = 0;
+						}
+					}
+					else {
+						// curr is the furthest we can put it, we're done
+						loop_indicate = 0;
+					}
+				}
+				else {
+					if (curr->val > curr->right->val) {
+						// swap, check, continue
+						if (loop_indicate == -1) {
+							h->root = curr->right;
+							loop_indicate = 1;
+						}
+						swap(curr, curr->right);
+						if (!(curr->left || curr->right)) {
+							loop_indicate = 0;
+						}
+					}
+					else {
+						// curr is the furthest we can put it, we're done
+						loop_indicate = 0;
+					}
+				}
+			}
+			else {
+				// only has left child
+				if (curr->val > curr->left->val) {
+					// swap, check, continue
+					if (loop_indicate == -1){
+						h->root = curr->left;
+						loop_indicate = 1;
+					}
+					swap(curr, curr->left);
+					if (!(curr->left || curr->right)) {
+						loop_indicate = 0;
+					}
+				}
+				else {
+					// curr is the furthest we can put it, we're done
+					loop_indicate = 0;
+				}
+			}
+		}
+		else if (curr->right) {
+			// only has right child
+			if (curr->val > curr->right->val) {
+				// swap, check, continue
+				if (loop_indicate == -1){
+					h->root = curr->right;
+					loop_indicate = 1;
+				}
+				swap(curr, curr->right);
+				if (!(curr->left || curr->right)) {
+					loop_indicate = 0;
+				}
+			}
+			else {
+				// curr is the furthest we can put it, we're done
+				loop_indicate = 0;
+			}
+		}
+	}
+}
+
 void insert (minheap* h, node* n){
 	if (h->empty) {
 		h->root = n;
@@ -71,8 +155,8 @@ void insert (minheap* h, node* n){
 	}
 	else {
 		node* curr = h->root;
-		int active =1;
-		while (active){
+		int active = 1;
+		while (active) {
 			if (curr->right && curr->left) {
 				// curr has both children
 				if (n->val > curr->right->val && n->val > curr->left->val) {
@@ -116,90 +200,7 @@ void insert (minheap* h, node* n){
 				active = 0;
 			}
 		}
-	}
-}
-
-void percolate(minheap* h) {
-	node* curr = h->root;
-	// loop_indicate: -1= first iteration 0=end loop; 1=child exists;
-	// used to prevent segfaults
-	int loop_indicate = -1;
-	while (loop_indicate != 0) {
-		if (curr->left) {
-			if (curr->right) {
-				// has both children
-				if (curr->left->val < curr->right->val) {
-					if (curr->val > curr->left->val) {
-						// swap, check, continue
-						if (loop_indicate == -1){
-							h->root = curr->left;
-							loop_indicate = 1;
-						}
-						swap(curr, curr->left);
-						if (!(curr->left || curr->right)) {
-							loop_indicate = 0;
-						}
-					}
-					else {
-						// curr is the furthest we can put it, we're done
-						loop_indicate = 0;
-					}
-				}
-				else {
-					if (curr->val > curr->right->val) {
-						// swap, check, continue
-						if (loop_indicate == -1){
-							h->root = curr-> right;
-							loop_indicate = 1;
-						}
-						swap(curr, curr->right);
-						if (!(curr->left || curr->right)) {
-							loop_indicate = 0;
-						}
-					}
-					else {
-						// curr is the furthest we can put it, we're done
-						loop_indicate = 0;
-					}
-				}
-			}
-			else {
-				// only has left child
-				if (curr->val > curr->left->val) {
-					// swap, check, continue
-					if (loop_indicate == -1){
-						h->root = curr->left;
-						loop_indicate = 1;
-					}
-					swap(curr, curr->left);
-					if (!(curr->left || curr->right)){
-						loop_indicate = 0;
-					}
-				}
-				else {
-					// curr is the furthest we can put it, we're done
-					loop_indicate = 0;
-				}
-			}
-		}
-		else if (curr->right) {
-			// only has right child
-			if (curr->val > curr->right->val) {
-				// swap, check, continue
-				if (loop_indicate == -1){
-					h->root = curr->right;
-					loop_indicate = 1;
-				}
-				swap(curr, curr->right);
-				if (!(curr->left || curr->right)) {
-					loop_indicate = 0;
-				}
-			}
-			else {
-				// curr is the furthest we can put it, we're done
-				loop_indicate = 0;
-			}
-		}
+		percolate(h);
 	}
 }
 
@@ -303,6 +304,7 @@ void heap_checker (node* n){
 	}
 	if (n->left){
 		if(n->left->val <n->val){
+			printf("parent:%f\n left: %f\n", n->val,n->left->val);
 			printf("youdone goofed\n");
 		}
 		heap_checker(n->left);
@@ -429,11 +431,14 @@ float prim(edge** g, graph_node* point_array, int numpoints, int v_index) {
 	// instantiate list of edges to return
 	// edge return_edges[num_edges];
 
-	int num_edges = numpoints * (numpoints-1) / 2;
+	// int num_edges = numpoints * (numpoints-1) / 2;
 
 
 	// S
 	int explored_v[numpoints];
+	for (int i = 0; i < numpoints; i++) {
+		explored_v[i] = 0;
+	}
 	// int explored_i = 0;
 	float return_weight = 0.0;
 
@@ -443,15 +448,12 @@ float prim(edge** g, graph_node* point_array, int numpoints, int v_index) {
 	for (int i = 0; i < numpoints; i++) {
 		dist[i] = INT_MAX - 1;
 		explored_v[i]=0;
-		// prev[i] = NULL;
 	}
 
 	dist[v_index] = 0;
 
 	while (!m->empty) {
 		node* deleted = deletemin(m);
-		// explored_v[explored_i] = point_array[deleted->assoc_edge->target];
-		// explored_i++;
 		int e = deleted->assoc_edge->target;
 		// printf("e: %d\n", e);
 		if (!explored_v[e]) {
@@ -460,9 +462,12 @@ float prim(edge** g, graph_node* point_array, int numpoints, int v_index) {
 			// if (dist[e] > deleted->val) {
 				// dist[e] = deleted->val;
 			for (int i =0; i<numpoints; i++) {
-				insert(m, create_node(&g[e][i]));
-				heap_checker(m->root);
+				if (!explored_v[i]) {
+						insert(m, create_node(&g[e][i]));
+				}	
 			}
+						heap_checker(m->root);
+
 			if (e!= deleted->assoc_edge->source){
 				return_weight += deleted->val;
 			}
@@ -490,11 +495,11 @@ int main(int argc, char* argv[]) {
 	printf("%f: from %i to %i\n", g[1][0].weight, g[1][0].source, g[1][0].target);
 	printf("%f: from %i to %i\n", g[1][1].weight, g[1][1].source, g[1][1].target);
 
-	// printf("%f: from %i to %i\n", g[0][2].weight, g[0][2].source, g[0][2].target);
-	// printf("%f: from %i to %i\n", g[1][2].weight, g[1][2].source, g[1][2].target);
-	// printf("%f: from %i to %i\n", g[2][0].weight, g[2][0].source, g[2][0].target);
-	// printf("%f: from %i to %i\n", g[2][1].weight, g[2][1].source, g[2][1].target);
-	// printf("%f: from %i to %i\n", g[2][2].weight, g[2][2].source, g[2][2].target);
+	printf("%f: from %i to %i\n", g[0][2].weight, g[0][2].source, g[0][2].target);
+	printf("%f: from %i to %i\n", g[1][2].weight, g[1][2].source, g[1][2].target);
+	printf("%f: from %i to %i\n", g[2][0].weight, g[2][0].source, g[2][0].target);
+	printf("%f: from %i to %i\n", g[2][1].weight, g[2][1].source, g[2][1].target);
+	printf("%f: from %i to %i\n", g[2][2].weight, g[2][2].source, g[2][2].target);
 
 
 	float total = prim(g, parray, numpoints, 0);
