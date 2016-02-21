@@ -38,9 +38,9 @@ typedef struct minheap {
 	int empty;
 }minheap;
 
-node* create_node(float val, edge* e) {
+node* create_node(edge* e) {
 	node* new = malloc(sizeof(node));
-	node tempnew ={val, NULL, NULL, NULL, e};
+	node tempnew ={e->weight, NULL, NULL, NULL, e};
 	memcpy(new, &tempnew, sizeof(node));
 	return new;
 }
@@ -393,17 +393,24 @@ int array_inclusion(graph_node* node_array, int num_v, graph_node* check) {
 	return 0;
 }
 
-float prim(edge** g, graph_node* point_array, int numpoints, edge* edge_array, int s_index) {
+float prim(edge** g, graph_node* point_array, int numpoints, edge* edge_array, int v_index) {
 	// initialize heap
 	minheap* m = malloc(sizeof(minheap));
 	minheap temp = {NULL, NULL, 1};
 	memcpy(m, &temp, sizeof(minheap));
 
-	insert(m, create_node(edge_array[s_index].weight, &edge_array[s_index]));
+	// initialize heap with self-loop to root vertex
+	edge *start_edge = malloc(sizeof(edge));
+	start_edge->weight = 0;
+	start_edge->source = point_array[v_index];
+	start_edge->target = point_array[v_index];
+	insert(m, create_node(start_edge));
 
 	// instantiate list of edges to return
-	int num_edges = numpoints * (numpoints-1) / 2;
 	// edge return_edges[num_edges];
+
+	int num_edges = numpoints * (numpoints-1) / 2;
+
 
 	// S
 	graph_node explored_v[numpoints];
