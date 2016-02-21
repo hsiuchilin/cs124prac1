@@ -56,7 +56,7 @@ void swap(node* p, node* c) {
 		p->left= tempcleft;
 		p->right = tempcright;
 	}
-	else{
+	else {
 		c->left = p->left;
 		c->right= p;
 		p->left= tempcleft;
@@ -112,7 +112,7 @@ void percolate(minheap* h) {
 				// only has left child
 				if (curr->val > curr->left->val) {
 					// swap, check, continue
-					if (loop_indicate == -1){
+					if (loop_indicate == -1) {
 						h->root = curr->left;
 						loop_indicate = 1;
 					}
@@ -131,7 +131,7 @@ void percolate(minheap* h) {
 			// only has right child
 			if (curr->val > curr->right->val) {
 				// swap, check, continue
-				if (loop_indicate == -1){
+				if (loop_indicate == -1) {
 					h->root = curr->right;
 					loop_indicate = 1;
 				}
@@ -157,6 +157,10 @@ void insert (minheap* h, node* n) {
 		node* curr = h->root;
 		int active = 1;
 		while (active) {
+			// if (n->val < curr->val) {
+
+			// }
+			// printf("does %f equal %f? %i\n", curr->val, h->root->val, h->root==curr);
 			if (curr->right && curr->left) {
 				// curr has both children
 				if (n->val > curr->right->val && n->val > curr->left->val) {
@@ -168,7 +172,7 @@ void insert (minheap* h, node* n) {
 					}
 				}
 				else if (n->val < curr->left->val && curr->left->val > curr->right->val) {
-					if (h->root == curr){
+					if (h->root == curr) {
 						h->root = n;
 					}
 					n->parent = curr->parent;
@@ -177,7 +181,7 @@ void insert (minheap* h, node* n) {
 					active = 0;
 				}
 				else if (n->val < curr->right->val && curr->right->val > curr->left->val) {
-					if (h->root == curr){
+					if (h->root == curr) {
 						h->root = n;
 					}
 					n->parent = curr->parent;
@@ -241,11 +245,11 @@ node* deletemin(minheap* h) {
 		node* temp_right;
 		// free(h->root);
 		node* curr; 
-		if (h->root->left->val > h->root->right->val) {
+		if (h->root->left->val < h->root->right->val) { //waitwaitwait <
 			temp_left = h->root->left;	
 			temp_right = h->root->right;
 		}
-		else{
+		else {
 			temp_left = h->root->right;
 			temp_right = h->root->left;
 		}
@@ -283,24 +287,31 @@ node* deletemin(minheap* h) {
 		}
 		curr->right = temp_right;
 		temp_right->parent = curr;
-		if (curr != temp_left){
+		if (curr != temp_left) {
 			curr->left = temp_left;
 		}
 		curr->parent = NULL;
 		free(h->root);
 		h->root = curr;
 		percolate(h);
+
 	}
 
 	return return_node;
 }
 
 void heap_printer (node* n) {
-	printf("%f\n", n->val);
-	if (n->left) {
+	if (n->left && n->right) {
+		printf("%f: left=%f, right=%f\n", n->val, n->left->val, n->right->val);
+		heap_printer(n->left);
+		heap_printer(n->right);
+	}
+	else if (n->left) {
+		printf("%f: left=%f, right=NULL\n", n->val, n->left->val);
 		heap_printer(n->left);
 	}
-	if (n-> right) {
+	else if (n-> right) {
+		printf("%f: left=NULL, right=%f\n", n->val, n->right->val);
 		heap_printer(n->right);
 	}
 }
@@ -469,14 +480,14 @@ float prim(edge** g, graph_node* point_array, int numpoints, int v_index) {
 				// dist[e] = deleted->val;
 			for (int i = 0; i < numpoints; i++) {
 				if (!explored_v[i]) {
-					printf("pushing node %i, of value %f\n", i, g[e][i].weight);
+					printf("pushing node %i--%i, of value %f\n", e, i, g[e][i].weight);
 					insert(m, create_node(&g[e][i]));
 				}	
 			}
 			heap_printer(m->root);
 			heap_checker(m->root);
 
-			if (e!= deleted->assoc_edge->source){
+			if (e != deleted->assoc_edge->source){
 				return_weight += deleted->val;
 			}
 			printf("return weight: %f\n", return_weight);
