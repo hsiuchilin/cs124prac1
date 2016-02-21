@@ -180,7 +180,7 @@ edge **initiate_graph(int n_points, int dim, graph_node* point_array) {
 }
 
 float prim(edge** g, graph_node* point_array, int numpoints, int v_index) {
-	printf("Beginning Prim\n");
+	// printf("Beginning Prim\n");
 	// initialize heap
 	int numedges = numpoints *(numpoints-1)/2;
 	heap* m = malloc(sizeof(heap));
