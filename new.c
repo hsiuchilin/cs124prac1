@@ -106,10 +106,9 @@ void heap_printer (heap* h, int i) {
 edge **initiate_graph(int n_points, int dim, graph_node* point_array) {
 	// seed pseudorandom number generator
 	srand(time(NULL));
-
-	printf("initiate\n");
-
+	printf("initialize\n");
 	edge** g = malloc(sizeof(edge*)*n_points);
+
 	for (int i = 0; i < n_points; i++) {
 		g[i] = NULL;
 	}
@@ -140,6 +139,7 @@ edge **initiate_graph(int n_points, int dim, graph_node* point_array) {
 					back_edge->next = g[j];
 					g[j] = back_edge;
 				}
+
 			}
 		}
 	}
@@ -207,8 +207,6 @@ edge **initiate_graph(int n_points, int dim, graph_node* point_array) {
 		}
 	}
 
-	free(point_array);
-
 	return g;
 }
 
@@ -219,8 +217,10 @@ float prim(edge** g, graph_node* point_array, int numpoints, int v_index) {
 	heap* m = malloc(sizeof(heap));
 	m->heap_size = 0;
 	m->h = malloc(sizeof(edge)*numedges);
+
 	edge first = {0,0,0,NULL};
 	insert(m, &first);
+
 
 	// S
 	int explored_v[numpoints];
@@ -237,12 +237,14 @@ float prim(edge** g, graph_node* point_array, int numpoints, int v_index) {
 		if (!explored_v[e]) {
 			printf("heapifying neighbors of %i\n", e);
 			explored_v[e] = 1;
+
 			edge* curr = g[e];
 			while (curr) {
 				if (!explored_v[curr->target]) {
 					insert(m, curr);
 				}
 				curr= curr->next;
+
 			}
 
 			if (e!= deleted.source) {
@@ -260,7 +262,7 @@ float prim(edge** g, graph_node* point_array, int numpoints, int v_index) {
 
 
 int main(int argc, char* argv[]) {
-	if (argc != 4) {
+	if (argc != 5) {
 		printf("Check number of arguments!\n");
 		// abort;
 	}
