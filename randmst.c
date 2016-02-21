@@ -131,11 +131,12 @@ void percolate(minheap* h) {
 				if (curr->left->val < curr->right->val) {
 					if (curr->val > curr->left->val) {
 						// swap, check, continue
-						if (loop_indicate == -1){
+						if (loop_indicate == -1) {
 							h->root = curr->left;
 							loop_indicate = 1;
 						}
 						swap(curr, curr->left);
+						curr = curr->left;
 						if (!(curr->left || curr->right)) {
 							loop_indicate = 0;
 						}
@@ -412,11 +413,14 @@ float prim(edge** g, graph_node* point_array, int numpoints, int v_index) {
 	// instantiate list of edges to return
 	// edge return_edges[num_edges];
 
-	int num_edges = numpoints * (numpoints-1) / 2;
+	// int num_edges = numpoints * (numpoints-1) / 2;
 
 
 	// S
 	int explored_v[numpoints];
+	for (int i = 0; i < numpoints; i++) {
+		explored_v[i] = 0;
+	}
 	// int explored_i = 0;
 
 	float return_weight = 0.0;
@@ -425,7 +429,7 @@ float prim(edge** g, graph_node* point_array, int numpoints, int v_index) {
 	// graph_node prev[numpoints];
 
 	for (int i = 0; i < numpoints; i++) {
-		dist[i] = INT_MAX;
+		dist[i] = INT_MAX - 1;
 		// prev[i] = NULL;
 	}
 
@@ -439,13 +443,17 @@ float prim(edge** g, graph_node* point_array, int numpoints, int v_index) {
 		// explored_i++;
 		int e = deleted->assoc_edge->target;
 		printf("e: %d\n", e);
+		printf("explored?: %i\n", !explored_v[e]);
 		if (!explored_v[e]) {
 			explored_v[e] = 1;
+			printf("wait %i\n", dist[e]);
 			if (dist[e] > deleted->val) {
 				dist[e] = deleted->val;
 				return_weight += deleted->val;
 				for (int i =0; i<numpoints; i++) {
+					printf("check source: %i\n", g[e][i].source);
 					if (g[e][i].source == e) {
+						printf("insert this: %f from %i to %i\n", g[e][i].weight, g[e][i].source, g[e][i].target);
 						insert(m, create_node(&g[e][i]));
 					}
 				}
