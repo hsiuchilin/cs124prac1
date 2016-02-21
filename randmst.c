@@ -533,24 +533,24 @@ int main(int argc, char* argv[]) {
 	g[4][2].weight = 9;
 	g[3][4].weight = 10;
 	g[4][3].weight = 10;
-	// printf("%f: from %i to %i\n", g[0][0].weight, g[0][0].source, g[0][0].target);
-	// printf("%f: from %i to %i\n", g[0][1].weight, g[0][1].source, g[0][1].target);
-	// printf("%f: from %i to %i\n", g[1][0].weight, g[1][0].source, g[1][0].target);
-	// printf("%f: from %i to %i\n", g[1][1].weight, g[1][1].source, g[1][1].target);
+	printf("%f: from %i to %i\n", g[0][0].weight, g[0][0].source, g[0][0].target);
+	printf("%f: from %i to %i\n", g[0][1].weight, g[0][1].source, g[0][1].target);
+	printf("%f: from %i to %i\n", g[1][0].weight, g[1][0].source, g[1][0].target);
+	printf("%f: from %i to %i\n", g[1][1].weight, g[1][1].source, g[1][1].target);
 
-	// printf("%f: from %i to %i\n", g[0][2].weight, g[0][2].source, g[0][2].target);
-	// printf("%f: from %i to %i\n", g[1][2].weight, g[1][2].source, g[1][2].target);
-	// printf("%f: from %i to %i\n", g[2][0].weight, g[2][0].source, g[2][0].target);
-	// printf("%f: from %i to %i\n", g[2][1].weight, g[2][1].source, g[2][1].target);
-	// printf("%f: from %i to %i\n", g[2][2].weight, g[2][2].source, g[2][2].target);
+	printf("%f: from %i to %i\n", g[0][2].weight, g[0][2].source, g[0][2].target);
+	printf("%f: from %i to %i\n", g[1][2].weight, g[1][2].source, g[1][2].target);
+	printf("%f: from %i to %i\n", g[2][0].weight, g[2][0].source, g[2][0].target);
+	printf("%f: from %i to %i\n", g[2][1].weight, g[2][1].source, g[2][1].target);
+	printf("%f: from %i to %i\n", g[2][2].weight, g[2][2].source, g[2][2].target);
 
-	// printf("%f: from %i to %i\n", g[0][3].weight, g[0][3].source, g[0][3].target);
-	// printf("%f: from %i to %i\n", g[1][3].weight, g[1][3].source, g[1][3].target);
-	// printf("%f: from %i to %i\n", g[2][3].weight, g[2][3].source, g[2][3].target);
-	// printf("%f: from %i to %i\n", g[3][0].weight, g[3][0].source, g[3][0].target);
-	// printf("%f: from %i to %i\n", g[3][1].weight, g[3][1].source, g[3][1].target);
-	// printf("%f: from %i to %i\n", g[3][2].weight, g[3][2].source, g[3][2].target);
-	// printf("%f: from %i to %i\n", g[3][3].weight, g[3][3].source, g[3][3].target);
+	printf("%f: from %i to %i\n", g[0][3].weight, g[0][3].source, g[0][3].target);
+	printf("%f: from %i to %i\n", g[1][3].weight, g[1][3].source, g[1][3].target);
+	printf("%f: from %i to %i\n", g[2][3].weight, g[2][3].source, g[2][3].target);
+	printf("%f: from %i to %i\n", g[3][0].weight, g[3][0].source, g[3][0].target);
+	printf("%f: from %i to %i\n", g[3][1].weight, g[3][1].source, g[3][1].target);
+	printf("%f: from %i to %i\n", g[3][2].weight, g[3][2].source, g[3][2].target);
+	printf("%f: from %i to %i\n", g[3][3].weight, g[3][3].source, g[3][3].target);
 
 	// printf("%f: from %i to %i\n", g[0][4].weight, g[0][4].source, g[0][4].target);
 	// printf("%f: from %i to %i\n", g[1][4].weight, g[1][4].source, g[1][4].target);
