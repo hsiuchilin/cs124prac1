@@ -176,6 +176,8 @@ edge **initiate_graph(int n_points, int dim, graph_node* point_array) {
 		}
 	}
 
+	free(point_array);
+
 	return g;
 }
 
@@ -221,6 +223,8 @@ float prim(edge** g, graph_node* point_array, int numpoints, int v_index) {
 		}	
 	}
 
+	free(m->h);
+	free(m);
 	return return_weight;
 }
 
@@ -235,9 +239,9 @@ int main(int argc, char* argv[]) {
 	int numtrials= atoi(argv[3]);
 	int dim= atoi(argv[4]);
 
-	graph_node* parray = malloc(sizeof(graph_node) * numpoints);
+	
 	// int numedges= numpoints * (numpoints-1)/2;
-	edge** g=initiate_graph(numpoints, dim, parray);
+	
 	// printf("%f: from %i to %i\n", g[0][0].weight, g[0][0].source, g[0][0].target);
 	// printf("%f: from %i to %i\n", g[0][1].weight, g[0][1].source, g[0][1].target);
 	// printf("%f: from %i to %i\n", g[1][0].weight, g[1][0].source, g[1][0].target);
@@ -260,11 +264,22 @@ int main(int argc, char* argv[]) {
 
 	float final = 0.0;
 	for (int trial = 0; trial < numtrials; trial++) {
+		graph_node* parray = malloc(sizeof(graph_node) * numpoints);
+		edge** g=initiate_graph(numpoints, dim, parray);
 		final += prim(g,parray, numpoints, 0);
+
+		free(parray);
+		for (int i = 0; i < numpoints; i++) {
+			free(g[i]);
+		}
+		free(g);
+
 	}
 	final = final / numtrials;
 
 	printf("%f %i %i %i\n", final, numpoints, numtrials, dim);
+
+	
 
 	return 0;
 }
