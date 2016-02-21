@@ -121,13 +121,14 @@ edge **initiate_graph(int n_points, int dim, graph_node* point_array) {
 
 	// count number of edges after pruning
 	COUNTER = 0;
+	float prune_cutoff = 16.0/(float)n_points;
 
 	if (dim == 0) {
 		for (int i = 0; i < n_points; i++) {
 			for (int j = i; j < n_points; j++) {
 				float weight = rand() / (float)RAND_MAX;
 				// prune
-				if (weight < 16.0/(float)n_points) {
+				if (weight < prune_cutoff) {
 					COUNTER++;
 					edge* forward_edge = malloc(sizeof(edge));
 					forward_edge->source = i; 
@@ -158,33 +159,26 @@ edge **initiate_graph(int n_points, int dim, graph_node* point_array) {
 		}
 		for (int i = 0; i < n_points; i++) {
 			for (int j = i; j < n_points; j++) {
-				// if (weight < 10.0/(float)n_points) {
-				// 	edge* forward_edge = malloc(sizeof(edge));
-				// 	forward_edge->source = i; 
-				// 	forward_edge->target = j;
-				// 	forward_edge->weight = sqrt(pow(point_array[i].x- point_array[j].x, 2)
-				// 		+ pow(point_array[i].y-point_array[j].y, 2));
+				float curr_weight = sqrt(pow(point_array[i].x- point_array[j].x, 2)
+						+ pow(point_array[i].y-point_array[j].y, 2));
+				if (curr_weight < prune_cutoff) {
+					COUNTER++;
+					edge* forward_edge = malloc(sizeof(edge));
+					forward_edge->source = i; 
+					forward_edge->target = j;
+					forward_edge->weight = curr_weight;
 
-				// 	edge* back_edge = malloc(sizeof(edge));
-				// 	back_edge->source = j;
-				// 	back_edge->target = i;
-				// 	back_edge->weight = forward_edge->weight;
+					edge* back_edge = malloc(sizeof(edge));
+					back_edge->source = j;
+					back_edge->target = i;
+					back_edge->weight = curr_weight;
 
-				// 	forward_edge->next = g[i];
-				// 	g[i] = forward_edge;
+					forward_edge->next = g[i];
+					g[i] = forward_edge;
 
-				// 	back_edge->next = g[j];
-				// 	g[j] = back_edge;
-				// }
-
-				g[i][j].weight = sqrt(pow(point_array[i].x- point_array[j].x, 2)
-					+ pow(point_array[i].y-point_array[j].y, 2));
-				g[i][j].source = i;
-				g[i][j].target = j;
-
-				g[j][i].weight = g[i][j].weight;
-				g[j][i].source = j;
-				g[j][i].target = i;
+					back_edge->next = g[j];
+					g[j] = back_edge;
+				}				
 			}
 		}
 	}
@@ -197,15 +191,27 @@ edge **initiate_graph(int n_points, int dim, graph_node* point_array) {
 		}
 		for (int i = 0; i < n_points; i++) {
 			for (int j = i; j < n_points; j++) {
-				g[i][j].weight = sqrt(pow(point_array[i].x- point_array[j].x, 2)
+				float curr_weight = sqrt(pow(point_array[i].x- point_array[j].x, 2)
 					+ pow(point_array[i].y-point_array[j].y, 2)
 					+ pow(point_array[i].z-point_array[j].z, 2));
-				g[i][j].source = i;
-				g[i][j].target = j;
+				if (curr_weight < prune_cutoff) {
+					COUNTER++;
+					edge* forward_edge = malloc(sizeof(edge));
+					forward_edge->source = i; 
+					forward_edge->target = j;
+					forward_edge->weight = curr_weight;
 
-				g[j][i].weight = g[i][j].weight;
-				g[j][i].source = j;
-				g[j][i].target = i;
+					edge* back_edge = malloc(sizeof(edge));
+					back_edge->source = j;
+					back_edge->target = i;
+					back_edge->weight = curr_weight;
+
+					forward_edge->next = g[i];
+					g[i] = forward_edge;
+
+					back_edge->next = g[j];
+					g[j] = back_edge;
+				}				
 			}
 		}
 	}
@@ -218,16 +224,28 @@ edge **initiate_graph(int n_points, int dim, graph_node* point_array) {
 		}
 		for (int i = 0; i < n_points; i++) {
 			for (int j = i; j < n_points; j++) {
-				g[i][j].weight = sqrt(pow(point_array[i].x - point_array[j].x, 2)
+				float curr_weight = sqrt(pow(point_array[i].x - point_array[j].x, 2)
 					+ pow(point_array[i].y - point_array[j].y, 2)
 					+ pow(point_array[i].z - point_array[j].z, 2)
 					+ pow(point_array[i].w - point_array[j].w, 2));
-				g[i][j].source = i;
-				g[i][j].target = j;
+				if (curr_weight < prune_cutoff) {
+					COUNTER++;
+					edge* forward_edge = malloc(sizeof(edge));
+					forward_edge->source = i; 
+					forward_edge->target = j;
+					forward_edge->weight = curr_weight;
 
-				g[j][i].weight = g[i][j].weight;
-				g[j][i].source = j;
-				g[j][i].target = i;
+					edge* back_edge = malloc(sizeof(edge));
+					back_edge->source = j;
+					back_edge->target = i;
+					back_edge->weight = curr_weight;
+
+					forward_edge->next = g[i];
+					g[i] = forward_edge;
+
+					back_edge->next = g[j];
+					g[j] = back_edge;
+				}
 			}
 		}
 	}
@@ -284,7 +302,7 @@ float prim(edge** g, graph_node* point_array, int numpoints, int v_index) {
 
 
 int main(int argc, char* argv[]) {
-	if (argc != 4) {
+	if (argc != 5) {
 		printf("Check number of arguments!\n");
 		// abort;
 	}
