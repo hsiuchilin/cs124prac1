@@ -314,6 +314,8 @@ edge **initiate_graph(int n_points, int dim, graph_node* point_array) {
 	// seed pseudorandom number generator
 	srand(time(NULL));
 
+	printf("initiate\n");
+
 	edge** g = malloc(sizeof(edge*)*n_points);
 	point_array= malloc(sizeof(graph_node) * n_points);
 	if (dim == 0) {
@@ -384,16 +386,17 @@ edge **initiate_graph(int n_points, int dim, graph_node* point_array) {
 	return g;
 }
 
-int array_inclusion(graph_node* node_array, int num_v, graph_node* check) {
-	for (int i = 0; i < num_v; i++) {
-		if (node_array[i].x == check->x && node_array[i].y == check->y && node_array[i].z == check->z && node_array[i].w == check->w) {
-			return 1;
-		}
-	}
-	return 0;
-}
+// int array_inclusion(graph_node* node_array, int num_v, graph_node* check) {
+// 	for (int i = 0; i < num_v; i++) {
+// 		if (node_array[i].x == check->x && node_array[i].y == check->y && node_array[i].z == check->z && node_array[i].w == check->w) {
+// 			return 1;
+// 		}
+// 	}
+// 	return 0;
+// }
 
-float prim(edge** g, graph_node* point_array, int numpoints, edge* edge_array, int v_index) {
+float prim(edge** g, graph_node* point_array, int numpoints, int v_index) {
+	printf("prim\n");
 	// initialize heap
 	minheap* m = malloc(sizeof(minheap));
 	minheap temp = {NULL, NULL, 1};
@@ -402,8 +405,8 @@ float prim(edge** g, graph_node* point_array, int numpoints, edge* edge_array, i
 	// initialize heap with self-loop to root vertex
 	edge *start_edge = malloc(sizeof(edge));
 	start_edge->weight = 0;
-	start_edge->source = point_array[v_index];
-	start_edge->target = point_array[v_index];
+	start_edge->source = v_index;
+	start_edge->target = v_index;
 	insert(m, create_node(start_edge));
 
 	// instantiate list of edges to return
@@ -413,8 +416,8 @@ float prim(edge** g, graph_node* point_array, int numpoints, edge* edge_array, i
 
 
 	// S
-	graph_node explored_v[numpoints];
-	int explored_i = 0;
+	int explored_v[numpoints];
+	// int explored_i = 0;
 
 	float return_weight = 0.0;
 
@@ -426,22 +429,28 @@ float prim(edge** g, graph_node* point_array, int numpoints, edge* edge_array, i
 		// prev[i] = NULL;
 	}
 
-	dist[s_index] = 0;
+	dist[v_index] = 0;
 
 	while (!m->empty) {
-		node* deleted = deletemin(m);
-		return_weight += deleted->val;
-		explored_v[explored_i] = point_array[deleted->assoc_edge->target];
-		explored_i++;
-		for (int e = 0; e < num_edges; e++) {
-			if (!array_inclusion(explored_v, explored_i, edge_array[e])) {
-				if (dist[e] > edge_array[e]) {
-					dist[e] = edge_array[e];
+		printf("hi\n");
 
-					insert(edge_array[e].weight,edge_array[e]);
+		node* deleted = deletemin(m);
+		// explored_v[explored_i] = point_array[deleted->assoc_edge->target];
+		// explored_i++;
+		int e = deleted->assoc_edge->target;
+		printf("e: %d\n", e);
+		if (!explored_v[e]) {
+			explored_v[e] = 1;
+			if (dist[e] > deleted->val) {
+				dist[e] = deleted->val;
+				return_weight += deleted->val;
+				for (int i =0; i<numpoints; i++) {
+					if (g[e][i].source == e) {
+						insert(m, create_node(&g[e][i]));
+					}
 				}
 			}
-		}
+		}	
 	}
 
 	return return_weight;
@@ -452,8 +461,19 @@ int main(int argc, char* argv[]) {
 		printf("Check number of arguments!\n");
 		// abort;
 	}
+	int numpoints= atoi(argv[1]);
+	int numtrials= atoi(argv[2]);
+	int dim= atoi(argv[3]);
+	printf("numpoints %i numtrials %i dim %i\n", numpoints, numtrials, dim);
+	graph_node* parray = malloc(sizeof(graph_node) * numpoints);
+	edge** g =initiate_graph(numpoints, dim, parray);
+	printf("%f: from %i to %i\n", g[0][0].weight, g[0][0].source, g[0][0].target);
+	printf("%f: from %i to %i\n", g[0][1].weight, g[0][1].source, g[0][1].target);
+	printf("%f: from %i to %i\n", g[1][0].weight, g[1][0].source, g[1][0].target);
+	printf("%f: from %i to %i\n", g[1][1].weight, g[1][1].source, g[1][1].target);
 
-
+	float total = prim(g, parray, numpoints, 0);
+	printf("%f heavy fat woman\n", total);
 	// minheap* m = malloc(sizeof(minheap));
 	// minheap temp = {NULL, NULL, 1};
 	// memcpy(m, &temp, sizeof(minheap));
