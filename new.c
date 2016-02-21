@@ -18,40 +18,40 @@ typedef struct edge {
 	float weight;
 }edge;
 
-typedef struct heap{
+typedef struct heap {
 	// unsigned int length;
 	unsigned int heap_size;
 	edge* h;
 }heap;
 
-int parent(int i){
+int parent(int i) {
 	return (i-1)/2;
 }
 
-int left(int i){
+int left(int i) {
 	return 2*i+1;
 }
-int right(int i){
+int right(int i) {
 	return 2*i +2;  
 }
 
-void insert(heap* h, edge* new){
+void insert(heap* h, edge* new) {
 	h->heap_size += 1;
 	int index = h->heap_size -1;
-	while (index>0 && h->h[parent(index)].weight > new->weight){
+	while (index>0 && h->h[parent(index)].weight > new->weight) {
 		h->h[index] = h->h[parent(index)];
 		index = parent(index);
 	}
 	h->h[index] = *new;
 }
 
-void swap(heap* h, int i, int j){
+void swap(heap* h, int i, int j) {
 	edge a= h->h[i];
 	h->h[i] = h->h[j];
 	h->h[j] = a;
 }
 
-void min_heapify(heap* h, int i){
+void min_heapify(heap* h, int i) {
 	int l = left(i);
 	int r = right(i);
 	int small;
@@ -71,7 +71,7 @@ void min_heapify(heap* h, int i){
 }
 
 // Check for empty before calling deletemin
-edge deletemin(heap* h){
+edge deletemin(heap* h) {
 	edge deleted = (h->h[0]);
 	h->heap_size -= 1;
 	h->h[0] = h->h[h->heap_size];
@@ -79,7 +79,7 @@ edge deletemin(heap* h){
 	return deleted;
 }
 
-void heap_printer (heap* h){
+void heap_printer (heap* h) {
 	for (int i = 0; i < h->heap_size; i++){
 		printf("Index %i: Source %i Dest %i Weight %f\n", i,
 			h->h[i].source, h->h[i].target, h->h[i].weight);
@@ -225,13 +225,18 @@ float prim(edge** g, graph_node* point_array, int numpoints, int v_index) {
 }
 
 
-int main(int argc, char* argv[]){
+int main(int argc, char* argv[]) {
+	if (argc != 4) {
+		printf("Check number of arguments!\n");
+		// abort;
+	}
 
-	int numpoints= atoi(argv[1]);
-	int numtrials= atoi(argv[2]);
-	int dim= atoi(argv[3]);
+	int numpoints= atoi(argv[2]);
+	int numtrials= atoi(argv[3]);
+	int dim= atoi(argv[4]);
+
 	graph_node* parray = malloc(sizeof(graph_node) * numpoints);
-	int numedges= numpoints * (numpoints-1)/2;
+	// int numedges= numpoints * (numpoints-1)/2;
 	edge** g=initiate_graph(numpoints, dim, parray);
 	// printf("%f: from %i to %i\n", g[0][0].weight, g[0][0].source, g[0][0].target);
 	// printf("%f: from %i to %i\n", g[0][1].weight, g[0][1].source, g[0][1].target);
@@ -253,8 +258,13 @@ int main(int argc, char* argv[]){
 	// printf("%f: from %i to %i\n", g[3][2].weight, g[3][2].source, g[3][2].target);
 	// printf("%f: from %i to %i\n", g[3][3].weight, g[3][3].source, g[3][3].target);
 
-	float final = prim(g,parray, numpoints, 0);
-	printf("final=%f\n", final);
+	float final = 0.0;
+	for (int trial = 0; trial < numtrials; trial++) {
+		final += prim(g,parray, numpoints, 0);
+	}
+	final = final / numtrials;
+
+	printf("%f %i %i %i\n", final, numpoints, numtrials, dim);
 
 	return 0;
 }
