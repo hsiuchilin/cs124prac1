@@ -168,12 +168,18 @@ void insert (minheap* h, node* n){
 					}
 				}
 				else if (n->val < curr->left->val && curr->left->val > curr->right->val) {
+					if (h->root == curr){
+						h->root = n;
+					}
 					n->parent = curr->parent;
 					n->left = curr;
 					curr->parent = n;
 					active = 0;
 				}
 				else if (n->val < curr->right->val && curr->right->val > curr->left->val) {
+					if (h->root == curr){
+						h->root = n;
+					}
 					n->parent = curr->parent;
 					n->right = curr;
 					curr->parent = n;
@@ -181,6 +187,9 @@ void insert (minheap* h, node* n){
 				}
 				else {
 					// curr should be swapped with n
+					if (h->root == curr){
+						h->root = n;
+					}
 					n->parent = curr->parent;
 					n->left = curr;
 					curr->parent = n;
@@ -230,7 +239,7 @@ node* deletemin(minheap* h) {
 	else {
 		node* temp_left;
 		node* temp_right;
-		free(h->root);
+		// free(h->root);
 		node* curr; 
 		if (h->root->left->val > h->root->right->val) {
 			temp_left = h->root->left;	
@@ -278,6 +287,7 @@ node* deletemin(minheap* h) {
 			curr->left = temp_left;
 		}
 		curr->parent = NULL;
+		free(h->root);
 		h->root = curr;
 		percolate(h);
 	}
@@ -463,7 +473,7 @@ float prim(edge** g, graph_node* point_array, int numpoints, int v_index) {
 				// dist[e] = deleted->val;
 			for (int i =0; i<numpoints; i++) {
 				if (!explored_v[i]) {
-						insert(m, create_node(&g[e][i]));
+						insert(m, create_node(&(g[e][i])));
 				}	
 			}
 						heap_checker(m->root);
@@ -501,13 +511,13 @@ int main(int argc, char* argv[]) {
 	printf("%f: from %i to %i\n", g[2][1].weight, g[2][1].source, g[2][1].target);
 	printf("%f: from %i to %i\n", g[2][2].weight, g[2][2].source, g[2][2].target);
 
-	// printf("%f: from %i to %i\n", g[0][3].weight, g[0][3].source, g[0][3].target);
-	// printf("%f: from %i to %i\n", g[1][3].weight, g[1][3].source, g[1][3].target);
-	// printf("%f: from %i to %i\n", g[2][3].weight, g[2][3].source, g[2][3].target);
-	// printf("%f: from %i to %i\n", g[3][0].weight, g[3][0].source, g[3][0].target);
-	// printf("%f: from %i to %i\n", g[3][1].weight, g[3][1].source, g[3][1].target);
-	// printf("%f: from %i to %i\n", g[3][2].weight, g[3][2].source, g[3][2].target);
-	// printf("%f: from %i to %i\n", g[3][3].weight, g[3][3].source, g[3][3].target);
+	printf("%f: from %i to %i\n", g[0][3].weight, g[0][3].source, g[0][3].target);
+	printf("%f: from %i to %i\n", g[1][3].weight, g[1][3].source, g[1][3].target);
+	printf("%f: from %i to %i\n", g[2][3].weight, g[2][3].source, g[2][3].target);
+	printf("%f: from %i to %i\n", g[3][0].weight, g[3][0].source, g[3][0].target);
+	printf("%f: from %i to %i\n", g[3][1].weight, g[3][1].source, g[3][1].target);
+	printf("%f: from %i to %i\n", g[3][2].weight, g[3][2].source, g[3][2].target);
+	printf("%f: from %i to %i\n", g[3][3].weight, g[3][3].source, g[3][3].target);
 
 
 	float total = prim(g, parray, numpoints, 0);
