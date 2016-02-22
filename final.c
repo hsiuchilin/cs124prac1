@@ -107,13 +107,19 @@ edge **initiate_graph(int n_points, int dim, graph_node* point_array) {
 	// seed pseudorandom number generator
 	srand(time(NULL));
 
-	printf("initiate\n");
+	// printf("initiate\n");
 
+	printf("crap\n");
+	fflush(stdout);
 	edge** g = malloc(sizeof(edge*)*n_points);
+	printf("dang\n");
+	fflush(stdout);
 	for (int i = 0; i < n_points; i++) {
 		g[i] = NULL;
 	}
 	point_array= malloc(sizeof(graph_node) * n_points);
+	printf("sigh\n");
+	fflush(stdout);
 	// for (int i = 0; i < n_points; i++) {
 	// 	g[i] = malloc(sizeof(edge)*n_points);
 	// }
@@ -121,9 +127,13 @@ edge **initiate_graph(int n_points, int dim, graph_node* point_array) {
 	if (dim == 0) {
 
 		for (int i = 0; i < n_points; i++) {
+			if (i % 4000 == 0){
+				printf("%i\n",i);
+				fflush(stdout);
+			}
 			for (int j = i; j < n_points; j++) {
 				float weight = rand() / (float)RAND_MAX;
-				if (weight < 1.2) {
+				if (weight < 1/log(n_points)) {
 					edge* forward_edge = malloc(sizeof(edge));
 					forward_edge->source = i; 
 					forward_edge->target = j;
@@ -207,20 +217,23 @@ edge **initiate_graph(int n_points, int dim, graph_node* point_array) {
 		}
 	}
 
-	free(point_array);
-
 	return g;
 }
 
 float prim(edge** g, graph_node* point_array, int numpoints, int v_index) {
 	// printf("Beginning Prim\n");
 	// initialize heap
+	printf("stupid\n");
 	int numedges = numpoints *(numpoints-1)/2;
 	heap* m = malloc(sizeof(heap));
 	m->heap_size = 0;
+	printf("sadness\n");
 	m->h = malloc(sizeof(edge)*numedges);
+	printf("wtf\n");
 	edge first = {0,0,0,NULL};
 	insert(m, &first);
+	printf("i have no idea \n");
+
 
 	// S
 	int explored_v[numpoints];
@@ -235,7 +248,7 @@ float prim(edge** g, graph_node* point_array, int numpoints, int v_index) {
 		edge deleted = deletemin(m);
 		int e = deleted.target;
 		if (!explored_v[e]) {
-			printf("heapifying neighbors of %i\n", e);
+			// printf("heapifying neighbors of %i\n", e);
 			explored_v[e] = 1;
 			edge* curr = g[e];
 			while (curr) {
@@ -249,18 +262,19 @@ float prim(edge** g, graph_node* point_array, int numpoints, int v_index) {
 				return_weight += deleted.weight;
 			}
 
-			heap_printer(m, 0);
+			// heap_printer(m, 0);
 		}	
 	}
 
 	free(m->h);
 	free(m);
+	printf("awesome\n");
 	return return_weight;
 }
 
 
 int main(int argc, char* argv[]) {
-	if (argc != 4) {
+	if (argc != 5) {
 		printf("Check number of arguments!\n");
 		// abort;
 	}
@@ -295,9 +309,13 @@ int main(int argc, char* argv[]) {
 	float final = 0.0;
 	for (int trial = 0; trial < numtrials; trial++) {
 		graph_node* parray = malloc(sizeof(graph_node) * numpoints);
+		printf("Malloced point_array\n");
+		fflush(stdout);
 		edge** g = initiate_graph(numpoints, dim, parray);
+		printf("Malloced graph\n");
+		fflush(stdout);
 		final += prim(g,parray, numpoints, 0);
-
+		printf("Some heap stuff has occurred\n");
 	// 	for (int i =0; i<numpoints; i++){
 	// 	printf("Beginning with Source %i\n", i);
 	// 	edge* curr = g[i];
