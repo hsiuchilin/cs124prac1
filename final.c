@@ -38,6 +38,7 @@ int right(int i) {
 	return 2*i +2;  
 }
 
+// insert new edge into heap
 void insert(heap* h, edge* new) {
 	h->heap_size += 1;
 	int index = h->heap_size -1;
@@ -48,16 +49,18 @@ void insert(heap* h, edge* new) {
 	h->h[index] = *new;
 }
 
+// swap two nodes in the heap
 void swap(heap* h, int i, int j) {
 	edge a= h->h[i];
 	h->h[i] = h->h[j];
 	h->h[j] = a;
 }
 
+// free up memory
 void free_graph(edge** g, int numpoints) {
-	for (int i =0; i<numpoints; i ++){
+	for (int i =0; i<numpoints; i ++) {
 		edge* curr = g[i];
-		while(curr){
+		while(curr) {
 			edge* temp = curr->next;
 			free(curr);
 			curr= temp;
@@ -66,6 +69,7 @@ void free_graph(edge** g, int numpoints) {
 	free(g);
 }
 
+// order the minheap
 void min_heapify(heap* h, int i) {
 	int l = left(i);
 	int r = right(i);
@@ -79,7 +83,7 @@ void min_heapify(heap* h, int i) {
 	if (r< h->heap_size && h->h[r].weight < h->h[small].weight) {
 		small = r;
 	}
-	if (small != i){
+	if (small != i) {
 		swap(h, i, small);
 		min_heapify(h, small);
 	}
@@ -94,16 +98,18 @@ edge deletemin(heap* h) {
 	return deleted;
 }
 
+// print out the heap, for debugging
 void heap_printer (heap* h, int i) {
 	printf("Source %i Target %i Weight %f Index %i\n", h->h[i].source, h->h[i].target, h->h[i].weight, i);
 	if (left(i) < h->heap_size) {
 		heap_printer(h, left(i));
-		if(right(i)<h->heap_size){
+		if(right(i)<h->heap_size) {
 			heap_printer(h, right(i));
 		}
 	}
 }
 
+// set up graph
 edge **initiate_graph(int n_points, int dim, graph_node* point_array) {
 	// seed pseudorandom number generator
 	srand(time(NULL));
@@ -121,7 +127,7 @@ edge **initiate_graph(int n_points, int dim, graph_node* point_array) {
 
 	// count number of edges after pruning
 	COUNTER = 0;
-	float prune_cutoff = 1.0/(pow(log((float)n_points), 2));
+	float prune_cutoff = 8.0/(pow(log((float)n_points), 2));
 
 	if (dim == 0) {
 		for (int i = 0; i < n_points; i++) {
@@ -255,10 +261,10 @@ edge **initiate_graph(int n_points, int dim, graph_node* point_array) {
 	return g;
 }
 
+// prim algorithm, to find weight of MST
 float prim(edge** g, graph_node* point_array, int numpoints, int v_index) {
 	// printf("Beginning Prim\n");
 	// initialize heap
-	// int numedges = numpoints *(numpoints-1)/2;
 	heap* m = malloc(sizeof(heap));
 	m->heap_size = 0;
 	m->h = malloc(sizeof(edge)*COUNTER);
@@ -290,7 +296,6 @@ float prim(edge** g, graph_node* point_array, int numpoints, int v_index) {
 			if (e!= deleted.source) {
 				return_weight += deleted.weight;
 			}
-
 			// heap_printer(m, 0);
 		}	
 	}
@@ -299,7 +304,6 @@ float prim(edge** g, graph_node* point_array, int numpoints, int v_index) {
 	free(m);
 	return return_weight;
 }
-
 
 int main(int argc, char* argv[]) {
 	if (argc != 5) {
@@ -310,10 +314,7 @@ int main(int argc, char* argv[]) {
 	int numpoints= atoi(argv[2]);
 	int numtrials= atoi(argv[3]);
 	int dim= atoi(argv[4]);
-
-	
-	// int numedges= numpoints * (numpoints-1)/2;
-	
+		
 	// printf("%f: from %i to %i\n", g[0][0].weight, g[0][0].source, g[0][0].target);
 	// printf("%f: from %i to %i\n", g[0][1].weight, g[0][1].source, g[0][1].target);
 	// printf("%f: from %i to %i\n", g[1][0].weight, g[1][0].source, g[1][0].target);
@@ -326,7 +327,6 @@ int main(int argc, char* argv[]) {
 	// printf("%f: from %i to %i\n", g[2][1].weight, g[2][1].source, g[2][1].target);
 	// printf("%f: from %i to %i\n", g[2][2].weight, g[2][2].source, g[2][2].target);
 
-	
 	// printf("%f: from %i to %i\n", g[1][3].weight, g[1][3].source, g[1][3].target);
 	// printf("%f: from %i to %i\n", g[2][3].weight, g[2][3].source, g[2][3].target);
 	// printf("%f: from %i to %i\n", g[3][0].weight, g[3][0].source, g[3][0].target);
@@ -338,33 +338,20 @@ int main(int argc, char* argv[]) {
 	for (int trial = 0; trial < numtrials; trial++) {
 		graph_node* parray = malloc(sizeof(graph_node) * numpoints);
 		edge** g = initiate_graph(numpoints, dim, parray);
-		final += prim(g,parray, numpoints, 0);
+		float prim_val = prim(g, parray, numpoints, 0);
+		if (prim_val == 0.0) {
+			printf("PRUNING TOO MANY: only %i out of %i remain.\n", COUNTER, ((numpoints-1) * numpoints / 2));
+		}
+		final += prim_val;
 		printf("Prune: %i remain out of %i\n", COUNTER, (numpoints-1) * numpoints / 2);
-
-	// 	for (int i =0; i<numpoints; i++){
-	// 	printf("Beginning with Source %i\n", i);
-	// 	edge* curr = g[i];
-	// 	while(curr){
-	// 		printf("This is edge with Source %i and Target %i and Weight %f\n", curr->source, curr->target, curr->weight);
-	// 		curr = curr->next;
-	// 	}
-	// }
-
 
 		free(parray);
 		free_graph(g, numpoints);
-		// for (int i = 0; i < numpoints; i++) {
-		// 	free(g[i]);
-		// }
-		// free(g);
-
 	}
+
 	final = final / numtrials;
 
 	printf("%f %i %i %i\n", final, numpoints, numtrials, dim);
-
-
-	
 
 	return 0;
 }
