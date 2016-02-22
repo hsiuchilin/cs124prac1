@@ -121,7 +121,7 @@ edge **initiate_graph(int n_points, int dim, graph_node* point_array) {
 
 	// count number of edges after pruning
 	COUNTER = 0;
-	float prune_cutoff = 16.0/(float)n_points;
+	float prune_cutoff = 1.0/(log((float)n_points) / log(2));
 
 	if (dim == 0) {
 		for (int i = 0; i < n_points; i++) {
@@ -339,6 +339,7 @@ int main(int argc, char* argv[]) {
 		graph_node* parray = malloc(sizeof(graph_node) * numpoints);
 		edge** g = initiate_graph(numpoints, dim, parray);
 		final += prim(g,parray, numpoints, 0);
+		printf("Prune: %i remain out of %i\n", COUNTER, (numpoints-1) * numpoints / 2);
 
 	// 	for (int i =0; i<numpoints; i++){
 	// 	printf("Beginning with Source %i\n", i);
