@@ -22,7 +22,6 @@ typedef struct edge {
 }edge;
 
 typedef struct heap {
-	// unsigned int length;
 	unsigned int heap_size;
 	edge* h;
 }heap;
@@ -69,7 +68,7 @@ void free_graph(edge** g, int numpoints) {
 	free(g);
 }
 
-// order the minheap
+// order the heap to be a MinHeap
 void min_heapify(heap* h, int i) {
 	int l = left(i);
 	int r = right(i);
@@ -89,6 +88,7 @@ void min_heapify(heap* h, int i) {
 	}
 }
 
+// deletes minimum node and returns it
 // Check for empty before calling deletemin
 edge deletemin(heap* h) {
 	edge deleted = (h->h[0]);
@@ -114,23 +114,27 @@ edge **initiate_graph(int n_points, int dim, graph_node* point_array) {
 	// seed pseudorandom number generator
 	srand(time(NULL));
 
-	printf("initiate\n");
-
 	edge** g = malloc(sizeof(edge*)*n_points);
 	for (int i = 0; i < n_points; i++) {
 		g[i] = NULL;
 	}
+
+	// array of all the points
 	point_array= malloc(sizeof(graph_node) * n_points);
-	// for (int i = 0; i < n_points; i++) {
-	// 	g[i] = malloc(sizeof(edge)*n_points);
-	// }
 
 	// count number of edges after pruning
 	COUNTER = 0;
-	float prune_cutoff = 8.0/(pow(log((float)n_points), 2));
 
+	// different prune cutoff for each dimension
+	float prune_cutoff;
+	 
 	if (dim == 0) {
+		prune_cutoff = 64.0/(pow(log2((float)n_points), 3));
 		for (int i = 0; i < n_points; i++) {
+			if (i % 4000 == 0){
+				printf("%i\n",i);
+				fflush(stdout);
+			}
 			for (int j = i; j < n_points; j++) {
 				float weight = rand() / (float)RAND_MAX;
 				// prune
@@ -154,9 +158,9 @@ edge **initiate_graph(int n_points, int dim, graph_node* point_array) {
 				}
 			}
 		}
-		// printf("Pruned %i edges!\n", counter);
 	}
-	else if (dim == 1) {
+	else if (dim == 2) {
+		prune_cutoff = 32.0/(pow(log2((float)n_points), 5/2));
 		for (int i = 0; i < n_points; i++) {
 			point_array[i].x = rand() / (float)RAND_MAX;
 			point_array[i].y = rand() / (float)RAND_MAX;
@@ -189,6 +193,7 @@ edge **initiate_graph(int n_points, int dim, graph_node* point_array) {
 		}
 	}
 	else if (dim == 3) {
+		prune_cutoff = 16.0/(pow(log2((float)n_points), 2));
 		for (int i = 0; i < n_points; i++) {
 			point_array[i].x = rand() / (float)RAND_MAX;
 			point_array[i].y = rand() / (float)RAND_MAX;
@@ -222,6 +227,7 @@ edge **initiate_graph(int n_points, int dim, graph_node* point_array) {
 		}
 	}
 	else {
+		prune_cutoff = 8.0/(pow(log2((float)n_points), 3/2));
 		for (int i = 0; i < n_points; i++) {
 			point_array[i].x = rand() / (float)RAND_MAX;
 			point_array[i].y = rand() / (float)RAND_MAX;
@@ -256,18 +262,16 @@ edge **initiate_graph(int n_points, int dim, graph_node* point_array) {
 		}
 	}
 
-	free(point_array);
-
 	return g;
 }
 
-// prim algorithm, to find weight of MST
+// Prim's algorithm, to find MST and return its weight
 float prim(edge** g, graph_node* point_array, int numpoints, int v_index) {
-	// printf("Beginning Prim\n");
 	// initialize heap
 	heap* m = malloc(sizeof(heap));
 	m->heap_size = 0;
 	m->h = malloc(sizeof(edge)*COUNTER);
+
 	edge first = {0,0,0,NULL};
 	insert(m, &first);
 
@@ -284,6 +288,7 @@ float prim(edge** g, graph_node* point_array, int numpoints, int v_index) {
 		edge deleted = deletemin(m);
 		int e = deleted.target;
 		if (!explored_v[e]) {
+
 			explored_v[e] = 1;
 			edge* curr = g[e];
 			while (curr) {
@@ -311,22 +316,25 @@ int main(int argc, char* argv[]) {
 		// abort;
 	}
 
+	// convert args into usable ints
 	int numpoints= atoi(argv[2]);
 	int numtrials= atoi(argv[3]);
 	int dim= atoi(argv[4]);
 		
+	// smaller test cases
+	// dim = 2
 	// printf("%f: from %i to %i\n", g[0][0].weight, g[0][0].source, g[0][0].target);
 	// printf("%f: from %i to %i\n", g[0][1].weight, g[0][1].source, g[0][1].target);
 	// printf("%f: from %i to %i\n", g[1][0].weight, g[1][0].source, g[1][0].target);
 	// printf("%f: from %i to %i\n", g[1][1].weight, g[1][1].source, g[1][1].target);
-
+	// dim = 3
 	// printf("%f: from %i to %i\n", g[0][2].weight, g[0][2].source, g[0][2].target);
 	// printf("%f: from %i to %i\n", g[0][3].weight, g[0][3].source, g[0][3].target);
 	// printf("%f: from %i to %i\n", g[1][2].weight, g[1][2].source, g[1][2].target);
 	// printf("%f: from %i to %i\n", g[2][0].weight, g[2][0].source, g[2][0].target);
 	// printf("%f: from %i to %i\n", g[2][1].weight, g[2][1].source, g[2][1].target);
 	// printf("%f: from %i to %i\n", g[2][2].weight, g[2][2].source, g[2][2].target);
-
+	// dim = 4
 	// printf("%f: from %i to %i\n", g[1][3].weight, g[1][3].source, g[1][3].target);
 	// printf("%f: from %i to %i\n", g[2][3].weight, g[2][3].source, g[2][3].target);
 	// printf("%f: from %i to %i\n", g[3][0].weight, g[3][0].source, g[3][0].target);
@@ -334,23 +342,40 @@ int main(int argc, char* argv[]) {
 	// printf("%f: from %i to %i\n", g[3][2].weight, g[3][2].source, g[3][2].target);
 	// printf("%f: from %i to %i\n", g[3][3].weight, g[3][3].source, g[3][3].target);
 
+	// time calculation
+	clock_t begin, end;
+	double time_spent;
+
+	begin = clock();
+	/* here, do your time-consuming job */
+	
 	float final = 0.0;
 	for (int trial = 0; trial < numtrials; trial++) {
 		graph_node* parray = malloc(sizeof(graph_node) * numpoints);
 		edge** g = initiate_graph(numpoints, dim, parray);
-		float prim_val = prim(g, parray, numpoints, 0);
-		if (prim_val == 0.0) {
-			printf("PRUNING TOO MANY: only %i out of %i remain.\n", COUNTER, ((numpoints-1) * numpoints / 2));
+
+		// if we prune off too many edges, we will get a zero-weighted MST
+		float results= prim(g,parray, numpoints, 0);
+		if (results == 0) {
+			printf("Too Severe for Trial\n");
+			fflush(stdout);
 		}
-		final += prim_val;
+		final+= results;
+
+		// keep track of how many we haven't pruned off
 		printf("Prune: %i remain out of %i\n", COUNTER, (numpoints-1) * numpoints / 2);
+		fflush(stdout);
 
 		free(parray);
 		free_graph(g, numpoints);
 	}
 
+	end = clock();
+	time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
 	final = final / numtrials;
 
+	// print results
+	printf("%f Seconds \n", time_spent);
 	printf("%f %i %i %i\n", final, numpoints, numtrials, dim);
 
 	return 0;
