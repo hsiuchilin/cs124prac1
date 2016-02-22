@@ -5,8 +5,10 @@
 #include <math.h>
 #include <limits.h>
 
+// count how many edges we have after we prune
 int COUNTER = 0;
 
+// graph point
 typedef struct graph_node {
 	float x;
 	float y;
@@ -14,6 +16,7 @@ typedef struct graph_node {
 	float w;
 }graph_node;
 
+// edge between points
 typedef struct edge {
 	int source;
 	int target;
@@ -21,11 +24,13 @@ typedef struct edge {
 	struct edge* next;		
 }edge;
 
+// heap to store edges, for Prim's algorithm
 typedef struct heap {
 	unsigned int heap_size;
 	edge* h;
 }heap;
 
+// calculations for the array implementation of heap
 int parent(int i) {
 	return (i-1)/2;
 }
@@ -59,7 +64,7 @@ void swap(heap* h, int i, int j) {
 void free_graph(edge** g, int numpoints) {
 	for (int i =0; i<numpoints; i ++) {
 		edge* curr = g[i];
-		while(curr) {
+		while (curr) {
 			edge* temp = curr->next;
 			free(curr);
 			curr= temp;
@@ -128,13 +133,10 @@ edge **initiate_graph(int n_points, int dim, graph_node* point_array) {
 	// different prune cutoff for each dimension
 	float prune_cutoff;
 	 
+	// setup graph
 	if (dim == 0) {
 		prune_cutoff = 64.0/(pow(log2((float)n_points), 3));
 		for (int i = 0; i < n_points; i++) {
-			if (i % 4000 == 0){
-				printf("%i\n",i);
-				fflush(stdout);
-			}
 			for (int j = i; j < n_points; j++) {
 				float weight = rand() / (float)RAND_MAX;
 				// prune
@@ -321,20 +323,20 @@ int main(int argc, char* argv[]) {
 	int numtrials= atoi(argv[3]);
 	int dim= atoi(argv[4]);
 		
-	// smaller test cases
-	// dim = 2
+	// smaller test cases - check by hand!
+	// uncomment below for dim = 2
 	// printf("%f: from %i to %i\n", g[0][0].weight, g[0][0].source, g[0][0].target);
 	// printf("%f: from %i to %i\n", g[0][1].weight, g[0][1].source, g[0][1].target);
 	// printf("%f: from %i to %i\n", g[1][0].weight, g[1][0].source, g[1][0].target);
 	// printf("%f: from %i to %i\n", g[1][1].weight, g[1][1].source, g[1][1].target);
-	// dim = 3
+	// uncomment below for dim = 3
 	// printf("%f: from %i to %i\n", g[0][2].weight, g[0][2].source, g[0][2].target);
 	// printf("%f: from %i to %i\n", g[0][3].weight, g[0][3].source, g[0][3].target);
 	// printf("%f: from %i to %i\n", g[1][2].weight, g[1][2].source, g[1][2].target);
 	// printf("%f: from %i to %i\n", g[2][0].weight, g[2][0].source, g[2][0].target);
 	// printf("%f: from %i to %i\n", g[2][1].weight, g[2][1].source, g[2][1].target);
 	// printf("%f: from %i to %i\n", g[2][2].weight, g[2][2].source, g[2][2].target);
-	// dim = 4
+	// uncomment below for dim = 4
 	// printf("%f: from %i to %i\n", g[1][3].weight, g[1][3].source, g[1][3].target);
 	// printf("%f: from %i to %i\n", g[2][3].weight, g[2][3].source, g[2][3].target);
 	// printf("%f: from %i to %i\n", g[3][0].weight, g[3][0].source, g[3][0].target);
@@ -343,10 +345,10 @@ int main(int argc, char* argv[]) {
 	// printf("%f: from %i to %i\n", g[3][3].weight, g[3][3].source, g[3][3].target);
 
 	// time calculation
-	clock_t begin, end;
-	double time_spent;
+	// clock_t begin, end;
+	// double time_spent;
 
-	begin = clock();
+	// begin = clock();
 	/* here, do your time-consuming job */
 	
 	float final = 0.0;
@@ -356,26 +358,18 @@ int main(int argc, char* argv[]) {
 
 		// if we prune off too many edges, we will get a zero-weighted MST
 		float results= prim(g,parray, numpoints, 0);
-		if (results == 0) {
-			printf("Too Severe for Trial\n");
-			fflush(stdout);
-		}
 		final+= results;
-
-		// keep track of how many we haven't pruned off
-		printf("Prune: %i remain out of %i\n", COUNTER, (numpoints-1) * numpoints / 2);
-		fflush(stdout);
 
 		free(parray);
 		free_graph(g, numpoints);
 	}
 
-	end = clock();
-	time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+	// end = clock();
+	// time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
 	final = final / numtrials;
 
 	// print results
-	printf("%f Seconds \n", time_spent);
+	// printf("%f Seconds \n", time_spent);
 	printf("%f %i %i %i\n", final, numpoints, numtrials, dim);
 
 	return 0;
