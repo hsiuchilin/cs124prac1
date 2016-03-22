@@ -5,33 +5,24 @@
 #include <string.h>
 #include <time.h>
 
-void arithmetic_matrix(int flag, int *m1, int *m2, int *m3, int n) {
+void arithmetic_matrix(int flag, int *m1, int *m2, int *m3, int a1, int b1, int c1, int d1, int a2, int b2, int c2, int d2) {
+	int n = c1 - a1 + 1;
 	if (flag == 1) {
+		// addition
 		for (int i = 0; i < n; i++) {
 			for (int j = 0; j < n; j++) {
-				m3[i][j] = m1[i][j] + m2[i][j];
+				m3[i][j] = m1[a1 + i][b1 + j] + m2[a2 + i][b2 + j];
 			}
 		}
 	}
 	else {
+		// subtraction
 		for (int i = 0; i < n; i++) {
 			for (int j = 0; j < n; j++) {
-				m3[i][j] = m1[i][j] - m2[i][j];
+				m3[i][j] = m1[a1 + i][b1 + j] - m2[a2 + i][b2 + j];
 			}
 		}
 	}
-}
-
-int*** setup_strassens(int *m1, int *m2, int n) {
-	int ***p = malloc(sizeof(int**) * 7);
-	for (int i = 0; i < 7; i++) {
-		p[i] = init_matrix(n/2);
-	}
-	p[0] = arithmetic_matrix()
-}
-
-void strassens(int **m1, int **m2, int **m3, int a, int b, int c, int d) {
-	int *p1 = malloc(sizeof(int) * 7);
 }
 
 void matrix_mult(int **m1, int **m2, int **m3, int a, int b, int c, int d) {
@@ -43,6 +34,19 @@ void matrix_mult(int **m1, int **m2, int **m3, int a, int b, int c, int d) {
 			}
 		}
 	}
+}
+
+int*** setup_strassens(int *m1, int *m2, int n) {
+	int ***p = malloc(sizeof(int**) * 7);
+	for (int i = 0; i < 7; i++) {
+		p[i] = init_matrix(n/2);
+	}
+	arithmetic_matrix(-1, m2, m2, p[0], 0, n/2, n/2, n, n/2, n/2, n, n);
+	matrix_mult(m1, )
+}
+
+void strassens(int **m1, int **m2, int **m3, int a, int b, int c, int d) {
+	int *p1 = malloc(sizeof(int) * 7);
 }
 
 int **identity(int n) {
