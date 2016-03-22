@@ -65,14 +65,14 @@ void prettyprinter(int **m, int n) {
 	}
 }
 
-int*** setup_strassens(int **m1, int **m2, int n, int a1, int b1, int a2, int b2) {
+int*** setup_strassens(int **m1, int **m2, int n, int a1, int b1, int c1, int d1, int a2, int b2, int c2, int d2, int n0) {
 	int ***p = malloc(sizeof(int**) * 7);
 	for (int i = 0; i < 7; i++) {
 		p[i] = init_matrix(n/2);
 	}
 	int **temp_matrix1 = init_matrix(n/2);
 	arithmetic_matrix(-1, m2, m2, temp_matrix1, a1, b1+n/2, a1 + n/2-1, b1+n, a2+n/2, b2+n/2, a2+n-1, b2+n-1);
-	matrix_mult(m1, temp_matrix1, p[0], a1,b1,a1+n/2 -1, a2,b2);
+	multiplier(m1, temp_matrix1, p[0], a1,b1,a1+n/2 -1, a2,b2);
 
 
 	arithmetic_matrix(1, m1, m1, temp_matrix1, a1,b1,a1+n/2-1, b1+n/2-1, a2,b2+n/2, a2+n/2-1, b2+n);
@@ -133,15 +133,15 @@ int **rand_matrix(int n) {
 	return m;
 }
 
-// void multiplier(int **m1, int **m2, int **m3, int a, int b, int c, int d, int n0) {
-// 	int n = c - a + 1;
-// 	if (n < n0) {
-// 		matrix_mult(m1, m2, m3, a, b, c, d);
-// 	}
-// 	else {
-// 		strassens(m1, m2, m3, a, b, c, d);
-// 	}
-// }
+void multiplier(int **m1, int **m2, int **m3, int n, int a1, int b1, int c1, int d1, int a2, int b2, int c2, int d2, int n0) {
+	int n = c - a + 1;
+	if (n < n0) {
+		matrix_mult(m1, m2, m3, a, b, c, d);
+	}
+	else {
+		strassens(m1, m2, m3, a, b, c, d);
+	}
+}
 
 int main(int argc, char* argv[]) {
 	// int **m1 = rand_matrix(4);
