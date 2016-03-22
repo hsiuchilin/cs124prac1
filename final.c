@@ -115,7 +115,7 @@ edge **initiate_graph(int n_points, int dim, graph_node* point_array) {
 
 	// count number of edges after pruning
 	COUNTER = 0;
-	float prune_cutoff = 8.0/(pow(log2((float)n_points), 3/2));
+	float prune_cutoff = 32.0/(pow(log2((float)n_points), 5/2));
 
 	if (dim == 0) {
 		for (int i = 0; i < n_points; i++) {
