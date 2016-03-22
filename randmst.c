@@ -5,8 +5,10 @@
 #include <math.h>
 #include <limits.h>
 
-#define HEAPEMPTY -1
+// count how many edges we have after we prune
+int COUNTER = 0;
 
+// graph point
 typedef struct graph_node {
 	float x;
 	float y;
@@ -14,352 +16,153 @@ typedef struct graph_node {
 	float w;
 }graph_node;
 
-// typedef struct graph {
-// 	graph_node** adjl;
-// }graph;
-
+// edge between points
 typedef struct edge {
 	int source;
 	int target;
 	float weight;
+	struct edge* next;		
 }edge;
 
-typedef struct node {
-	float val;
-	struct node* parent;
-	struct node* left;
-	struct node* right;
-	edge* assoc_edge;
-}node;
+// heap to store edges, for Prim's algorithm
+typedef struct heap {
+	unsigned int heap_size;
+	edge* h;
+}heap;
 
-typedef struct minheap {
-	node* root;
-	node* bottom;
-	int empty;
-}minheap;
-
-node* create_node(edge* e) {
-	node* new = malloc(sizeof(node));
-	node tempnew ={e->weight, NULL, NULL, NULL, e};
-	memcpy(new, &tempnew, sizeof(node));
-	return new;
+// calculations for the array implementation of heap
+int parent(int i) {
+	return (i-1)/2;
 }
 
-void swap(node* p, node* c) {
-	if (p->parent){
-		if (p->parent->left == p){
-			p->parent->left = c;
-		}
-		else {
-			p->parent->right = c;
+int left(int i) {
+	return 2*i+1;
+}
+int right(int i) {
+	return 2*i +2;  
+}
+
+// insert new edge into heap
+void insert(heap* h, edge* new) {
+	h->heap_size += 1;
+	int index = h->heap_size -1;
+	while (index>0 && h->h[parent(index)].weight > new->weight) {
+		h->h[index] = h->h[parent(index)];
+		index = parent(index);
+	}
+	h->h[index] = *new;
+}
+
+// swap two nodes in the heap
+void swap(heap* h, int i, int j) {
+	edge a= h->h[i];
+	h->h[i] = h->h[j];
+	h->h[j] = a;
+}
+
+// free up memory
+void free_graph(edge** g, int numpoints) {
+	for (int i =0; i<numpoints; i ++) {
+		edge* curr = g[i];
+		while (curr) {
+			edge* temp = curr->next;
+			free(curr);
+			curr= temp;
 		}
 	}
-	c->parent = p->parent;
-	p->parent = c;
-	node* tempcleft = c->left;
-	node* tempcright = c->right;
-	if (p->left == c) {
-		c->left = p;
-		c->right = p->right;
-		p->left= tempcleft;
-		p->right = tempcright;
+	free(g);
+}
+
+// order the heap to be a MinHeap
+void min_heapify(heap* h, int i) {
+	int l = left(i);
+	int r = right(i);
+	int small;
+	if (l < h->heap_size && h->h[l].weight < h->h[r].weight) {
+		small = l;
 	}
 	else{
-		c->left = p->left;
-		c->right= p;
-		p->left= tempcleft;
-		p->right= tempcright;
+		small= i;
+	}
+	if (r< h->heap_size && h->h[r].weight < h->h[small].weight) {
+		small = r;
+	}
+	if (small != i) {
+		swap(h, i, small);
+		min_heapify(h, small);
 	}
 }
 
-void percolate(minheap* h) {
-	node* curr = h->root;
-	// loop_indicate: -1= first iteration 0=end loop; 1=child exists;
-	// used to prevent segfaults
-	int loop_indicate = -1;
-	while (loop_indicate != 0) {
-		if (curr->left) {
-			if (curr->right) {
-				// has both children
-				if (curr->left->val < curr->right->val) {
-					if (curr->val > curr->left->val) {
-						// swap, check, continue
-						if (loop_indicate == -1) {
-							h->root = curr->left;
-							loop_indicate = 1;
-						}
-						swap(curr, curr->left);
-						if (!(curr->left || curr->right)) {
-							loop_indicate = 0;
-						}
-					}
-					else {
-						// curr is the furthest we can put it, we're done
-						loop_indicate = 0;
-					}
-				}
-				else {
-					if (curr->val > curr->right->val) {
-						// swap, check, continue
-						if (loop_indicate == -1) {
-							h->root = curr->right;
-							loop_indicate = 1;
-						}
-						swap(curr, curr->right);
-						if (!(curr->left || curr->right)) {
-							loop_indicate = 0;
-						}
-					}
-					else {
-						// curr is the furthest we can put it, we're done
-						loop_indicate = 0;
-					}
-				}
-			}
-			else {
-				// only has left child
-				if (curr->val > curr->left->val) {
-					// swap, check, continue
-					if (loop_indicate == -1){
-						h->root = curr->left;
-						loop_indicate = 1;
-					}
-					swap(curr, curr->left);
-					if (!(curr->left || curr->right)) {
-						loop_indicate = 0;
-					}
-				}
-				else {
-				// curr is the furthest we can put it, we're done
-					loop_indicate = 0;
-				}
-			}		
-		}	
-		else if (curr->right) {
-			// only has right child
-			if (curr->val > curr->right->val) {
-				// swap, check, continue
-				if (loop_indicate == -1){
-					h->root = curr->right;
-					loop_indicate = 1;
-				}
-				swap(curr, curr->right);
-				if (!(curr->left || curr->right)) {
-					loop_indicate = 0;
-				}
-			}
-			else {
-				// curr is the furthest we can put it, we're done
-				loop_indicate = 0;
-			}
+// deletes minimum node and returns it
+// Check for empty before calling deletemin
+edge deletemin(heap* h) {
+	edge deleted = (h->h[0]);
+	h->heap_size -= 1;
+	h->h[0] = h->h[h->heap_size];
+	min_heapify(h, 0);
+	return deleted;
+}
+
+// print out the heap, for debugging
+void heap_printer (heap* h, int i) {
+	printf("Source %i Target %i Weight %f Index %i\n", h->h[i].source, h->h[i].target, h->h[i].weight, i);
+	if (left(i) < h->heap_size) {
+		heap_printer(h, left(i));
+		if(right(i)<h->heap_size) {
+			heap_printer(h, right(i));
 		}
 	}
 }
 
-void insert (minheap* h, node* n) {
-	if (h->empty) {
-		h->root = n;
-		h->empty = 0;
-	}
-	else {
-		node* curr = h->root;
-		int active = 1;
-		while (active) {
-			if (curr->right && curr->left) {
-				// curr has both children
-				if (n->val > curr->right->val && n->val > curr->left->val) {
-					if (curr->right->val < curr->left->val) {
-						curr = curr->left;
-					}
-					else {
-						curr = curr->right;
-					}
-				}
-				// else if (n->val < curr->left->val && curr->left->val > curr->right->val) {
-				// 	if (h->root == curr){
-				// 		h->root = n;
-				// 	}
-				// 	n->parent = curr->parent;
-				// 	n->left = curr;
-				// 	curr->parent = n;
-				// 	active = 0;
-				// }
-				else if (n->val < curr->right->val && curr->right->val > curr->left->val) {
-					if (h->root == curr){
-						h->root = n;
-					}
-					n->parent = curr->parent;
-					n->right = curr;
-					curr->parent = n;
-					active = 0;
-				}
-				else {
-					// curr should be swapped with n
-					if (h->root == curr){
-						h->root = n;
-					}
-					n->parent = curr->parent;
-					n->left = curr;
-					curr->parent = n;
-					active = 0;
-				}
-			}
-			else if (curr->left) {
-				// curr only has left child
-				curr->right = n;
-				n->parent = curr;
-				active = 0;
-			}
-			else {
-				// curr only has right child or no children
-				curr-> left = n;
-				n->parent = curr;
-				active = 0;
-			}
-		}
-		percolate(h);
-	}
-}
-
-node* deletemin(minheap* h) {
-	// If heap is empty fail gracefully
-	if (h->empty) {
-		return NULL;
-	}
-	node* return_node = malloc(sizeof(node));
-	memcpy(return_node, h->root, sizeof(node));
-
-	// If heap is of one element, empty the heap
-	if (!(h->root->left || h->root->right)) {
-		free(h->root);
-		h->root = NULL;
-		h->bottom = NULL;
-		h->empty = 1;
-	}
-	// if heap only has right node, set root to right node
-	else if (!h->root->left && h->root->right) {
-		node* temp = h->root->right;
-		free(h->root);
-		h->root = temp;
-	}
-	// if heap only has left node, set root to left node
-	else if (h->root->left && !h->root->right) {
-		node* temp = h->root->left;
-		free(h->root);
-		h->root = temp;
-	}
-	// if two children
-	else {
-		// save the two nodes
-		node* temp_left;
-		node* temp_right;
-		node* curr; 
-		if (h->root->left->val > h->root->right->val) {
-			temp_left = h->root->left;	
-			temp_right = h->root->right;
-		}
-		else{
-			temp_left = h->root->right;
-			temp_right = h->root->left;
-		}
-		curr = temp_left;
-		while (curr->left || curr->right) {
-			if (curr->left) {
-				if (curr->right) {
-					// both children exist, go down through larger child
-					if (curr->left->val > curr->right->val) {
-						curr = curr->left;
-					}
-					else {
-						curr = curr->right;
-					}
-				}
-				else {
-					// only left child exists
-					curr = curr->left;
-				}
-			}
-			else {
-				// only right child exists
-				curr = curr->right;
-			}
-		}
-
-		// now curr is a leaf - make it the root and percolate
-		if (curr->parent && curr->parent != h->root){
-			if (curr->parent->left == curr){
-				curr->parent->left = NULL;
-			}
-			else{
-				curr->parent ->right = NULL;
-			}
-		}
-		curr->right = temp_right;
-		temp_right->parent = curr;
-		if (curr != temp_left){
-			curr->left = temp_left;
-			temp_left->parent = curr;
-		}
-		curr->parent = NULL;
-		free(h->root);
-		h->root = curr;
-		percolate(h);
-	}
-
-	return return_node;
-}
-
-void heap_printer (node* n) {
-	printf("%f\n", n->val);
-	if (n->left) {
-		heap_printer(n->left);
-	}
-	if (n-> right) {
-		heap_printer(n->right);
-	}
-}
-
-void heap_checker (node* n){
-	if (n->right){
-		if (n->right->val < n->val){
-			printf("you done goofed \n");
-		}
-		heap_checker(n->right);
-	}
-	if (n->left){
-		if(n->left->val <n->val){
-			printf("parent:%f\n left: %f\n", n->val,n->left->val);
-			printf("youdone goofed\n");
-		}
-		heap_checker(n->left);
-	}
-}
-
-
+// set up graph
 edge **initiate_graph(int n_points, int dim, graph_node* point_array) {
 	// seed pseudorandom number generator
 	srand(time(NULL));
 
-	printf("initiate\n");
-
 	edge** g = malloc(sizeof(edge*)*n_points);
-	point_array= malloc(sizeof(graph_node) * n_points);
 	for (int i = 0; i < n_points; i++) {
-		g[i] = malloc(sizeof(edge)*n_points);
+		g[i] = NULL;
 	}
 
-	if (dim == 0) {
+	// array of all the points
+	point_array= malloc(sizeof(graph_node) * n_points);
 
+	// count number of edges after pruning
+	COUNTER = 0;
+
+	// different prune cutoff for each dimension
+	float prune_cutoff;
+	 
+	// setup graph
+	if (dim == 0) {
+		prune_cutoff = 64.0/(pow(log2((float)n_points), 3));
 		for (int i = 0; i < n_points; i++) {
-			g[i] = malloc(sizeof(edge)*(n_points - i));
 			for (int j = i; j < n_points; j++) {
-				g[i][j].weight = rand() / (float)RAND_MAX;
-				g[i][j].source = i;
-				g[i][j].target = j;
+				float weight = rand() / (float)RAND_MAX;
+				// prune
+				if (weight < prune_cutoff) {
+					COUNTER++;
+					edge* forward_edge = malloc(sizeof(edge));
+					forward_edge->source = i; 
+					forward_edge->target = j;
+					forward_edge->weight = weight;
+
+					edge* back_edge = malloc(sizeof(edge));
+					back_edge->source = j;
+					back_edge->target = i;
+					back_edge->weight = weight;
+
+					forward_edge->next = g[i];
+					g[i] = forward_edge;
+
+					back_edge->next = g[j];
+					g[j] = back_edge;
+				}
 			}
 		}
 	}
-	else if (dim == 1) {
+	else if (dim == 2) {
+		prune_cutoff = 64.0/(pow(log2((float)n_points), 3));
 		for (int i = 0; i < n_points; i++) {
 			point_array[i].x = rand() / (float)RAND_MAX;
 			point_array[i].y = rand() / (float)RAND_MAX;
@@ -368,18 +171,31 @@ edge **initiate_graph(int n_points, int dim, graph_node* point_array) {
 		}
 		for (int i = 0; i < n_points; i++) {
 			for (int j = i; j < n_points; j++) {
-				g[i][j].weight = sqrt(pow(point_array[i].x- point_array[j].x, 2)
-					+ pow(point_array[i].y-point_array[j].y, 2));
-				g[i][j].source = i;
-				g[i][j].target = j;
+				float curr_weight = sqrt(pow(point_array[i].x- point_array[j].x, 2)
+						+ pow(point_array[i].y-point_array[j].y, 2));
+				if (curr_weight < prune_cutoff) {
+					COUNTER++;
+					edge* forward_edge = malloc(sizeof(edge));
+					forward_edge->source = i; 
+					forward_edge->target = j;
+					forward_edge->weight = curr_weight;
 
-				g[j][i].weight = g[i][j].weight;
-				g[j][i].source = j;
-				g[j][i].target = i;
+					edge* back_edge = malloc(sizeof(edge));
+					back_edge->source = j;
+					back_edge->target = i;
+					back_edge->weight = curr_weight;
+
+					forward_edge->next = g[i];
+					g[i] = forward_edge;
+
+					back_edge->next = g[j];
+					g[j] = back_edge;
+				}				
 			}
 		}
 	}
 	else if (dim == 3) {
+		prune_cutoff = 16.0/(pow(log2((float)n_points), 2));
 		for (int i = 0; i < n_points; i++) {
 			point_array[i].x = rand() / (float)RAND_MAX;
 			point_array[i].y = rand() / (float)RAND_MAX;
@@ -388,19 +204,32 @@ edge **initiate_graph(int n_points, int dim, graph_node* point_array) {
 		}
 		for (int i = 0; i < n_points; i++) {
 			for (int j = i; j < n_points; j++) {
-				g[i][j].weight = sqrt(pow(point_array[i].x- point_array[j].x, 2)
+				float curr_weight = sqrt(pow(point_array[i].x- point_array[j].x, 2)
 					+ pow(point_array[i].y-point_array[j].y, 2)
 					+ pow(point_array[i].z-point_array[j].z, 2));
-				g[i][j].source = i;
-				g[i][j].target = j;
+				if (curr_weight < prune_cutoff) {
+					COUNTER++;
+					edge* forward_edge = malloc(sizeof(edge));
+					forward_edge->source = i; 
+					forward_edge->target = j;
+					forward_edge->weight = curr_weight;
 
-				g[j][i].weight = g[i][j].weight;
-				g[j][i].source = j;
-				g[j][i].target = i;
+					edge* back_edge = malloc(sizeof(edge));
+					back_edge->source = j;
+					back_edge->target = i;
+					back_edge->weight = curr_weight;
+
+					forward_edge->next = g[i];
+					g[i] = forward_edge;
+
+					back_edge->next = g[j];
+					g[j] = back_edge;
+				}				
 			}
 		}
 	}
 	else {
+		prune_cutoff = 8.0/(pow(log2((float)n_points), 3/2));
 		for (int i = 0; i < n_points; i++) {
 			point_array[i].x = rand() / (float)RAND_MAX;
 			point_array[i].y = rand() / (float)RAND_MAX;
@@ -409,16 +238,28 @@ edge **initiate_graph(int n_points, int dim, graph_node* point_array) {
 		}
 		for (int i = 0; i < n_points; i++) {
 			for (int j = i; j < n_points; j++) {
-				g[i][j].weight = sqrt(pow(point_array[i].x - point_array[j].x, 2)
+				float curr_weight = sqrt(pow(point_array[i].x - point_array[j].x, 2)
 					+ pow(point_array[i].y - point_array[j].y, 2)
 					+ pow(point_array[i].z - point_array[j].z, 2)
 					+ pow(point_array[i].w - point_array[j].w, 2));
-				g[i][j].source = i;
-				g[i][j].target = j;
+				if (curr_weight < prune_cutoff) {
+					COUNTER++;
+					edge* forward_edge = malloc(sizeof(edge));
+					forward_edge->source = i; 
+					forward_edge->target = j;
+					forward_edge->weight = curr_weight;
 
-				g[j][i].weight = g[i][j].weight;
-				g[j][i].source = j;
-				g[j][i].target = i;
+					edge* back_edge = malloc(sizeof(edge));
+					back_edge->source = j;
+					back_edge->target = i;
+					back_edge->weight = curr_weight;
+
+					forward_edge->next = g[i];
+					g[i] = forward_edge;
+
+					back_edge->next = g[j];
+					g[j] = back_edge;
+				}
 			}
 		}
 	}
@@ -426,176 +267,110 @@ edge **initiate_graph(int n_points, int dim, graph_node* point_array) {
 	return g;
 }
 
-// int array_inclusion(graph_node* node_array, int num_v, graph_node* check) {
-// 	for (int i = 0; i < num_v; i++) {
-// 		if (node_array[i].x == check->x && node_array[i].y == check->y && node_array[i].z == check->z && node_array[i].w == check->w) {
-// 			return 1;
-// 		}
-// 	}
-// 	return 0;
-// }
-
+// Prim's algorithm, to find MST and return its weight
 float prim(edge** g, graph_node* point_array, int numpoints, int v_index) {
-	printf("prim\n");
 	// initialize heap
-	minheap* m = malloc(sizeof(minheap));
-	minheap temp = {NULL, NULL, 1};
-	memcpy(m, &temp, sizeof(minheap));
+	heap* m = malloc(sizeof(heap));
+	m->heap_size = 0;
+	m->h = malloc(sizeof(edge)*COUNTER);
 
-	// initialize heap with self-loop to root vertex
-	// edge *start_edge = malloc(sizeof(edge));
-	// start_edge->weight = 0;
-	// start_edge->source = v_index;
-	// start_edge->target = v_index;
-	insert(m, create_node(&g[v_index][v_index]));
-	int * heaped = malloc(sizeof(int) * numpoints);
-	// instantiate list of edges to return
-	// edge return_edges[num_edges];
-
-	// int num_edges = numpoints * (numpoints-1) / 2;
-
+	edge first = {0,0,0,NULL};
+	insert(m, &first);
 
 	// S
 	int explored_v[numpoints];
 
 	float return_weight = 0.0;
 
-	int dist[numpoints];
-
 	for (int i = 0; i < numpoints; i++) {
-		dist[i] = INT_MAX - 1;
 		explored_v[i] = 0;
-		heaped[i] =0;
 	}
 
-	dist[v_index] = 0;
-
-	while (!m->empty) {
-		node* deleted = deletemin(m);
-		int e = deleted->assoc_edge->target;
-		printf("e: %d\n", e);
+	while (m->heap_size!=0) {
+		edge deleted = deletemin(m);
+		int e = deleted.target;
 		if (!explored_v[e]) {
 
 			explored_v[e] = 1;
-			// if (dist[e] > deleted->val) {
-				// dist[e] = deleted->val;
-			for (int i = 0; i < numpoints; i++) {
-				if (!explored_v[i]) {
-					// printf("pushing node %i, of value %f\n", i, g[e][i].weight);
-					insert(m, create_node(&g[e][i]));
-				}	
+			edge* curr = g[e];
+			while (curr) {
+				if (!explored_v[curr->target]) {
+					insert(m, curr);
+				}
+				curr= curr->next;
 			}
-			heap_printer(m->root);
-			heap_checker(m->root);
 
-			if (e!= deleted->assoc_edge->source){
-				return_weight += deleted->val;
+			if (e!= deleted.source) {
+				return_weight += deleted.weight;
 			}
-			printf("return weight: %f\n", return_weight);
-			// }
+			// heap_printer(m, 0);
 		}	
 	}
 
+	free(m->h);
+	free(m);
 	return return_weight;
 }
 
 int main(int argc, char* argv[]) {
-	if (argc != 4) {
+	if (argc != 5) {
 		printf("Check number of arguments!\n");
 		// abort;
 	}
-	int numpoints= atoi(argv[1]);
-	int numtrials= atoi(argv[2]);
-	int dim= atoi(argv[3]);
-	printf("numpoints %i numtrials %i dim %i\n", numpoints, numtrials, dim);
-	graph_node* parray = malloc(sizeof(graph_node) * numpoints);
-	edge** g =initiate_graph(numpoints, dim, parray);
-	g[0][1].weight = 1;
-	g[0][2].weight = 2;
-	g[0][3].weight = 3;
-	g[0][4].weight = 4;
-	g[1][0].weight = 1;
-	g[2][0].weight = 2;
-	g[3][0].weight = 3;
-	g[4][0].weight = 4;
-	g[1][2].weight = 5;
-	g[1][3].weight = 6;
-	g[1][4].weight = 7;
-	g[2][1].weight = 5;
-	g[3][1].weight = 6;
-	g[4][1].weight = 7;
-	g[2][3].weight = 8;
-	g[2][4].weight = 9;
-	g[3][2].weight = 8;
-	g[4][2].weight = 9;
-	g[3][4].weight = 10;
-	g[4][3].weight = 10;
-	printf("%f: from %i to %i\n", g[0][0].weight, g[0][0].source, g[0][0].target);
-	printf("%f: from %i to %i\n", g[0][1].weight, g[0][1].source, g[0][1].target);
-	printf("%f: from %i to %i\n", g[1][0].weight, g[1][0].source, g[1][0].target);
-	printf("%f: from %i to %i\n", g[1][1].weight, g[1][1].source, g[1][1].target);
 
-	printf("%f: from %i to %i\n", g[0][2].weight, g[0][2].source, g[0][2].target);
-	printf("%f: from %i to %i\n", g[1][2].weight, g[1][2].source, g[1][2].target);
-	printf("%f: from %i to %i\n", g[2][0].weight, g[2][0].source, g[2][0].target);
-	printf("%f: from %i to %i\n", g[2][1].weight, g[2][1].source, g[2][1].target);
-	printf("%f: from %i to %i\n", g[2][2].weight, g[2][2].source, g[2][2].target);
+	// convert args into usable ints
+	int numpoints= atoi(argv[2]);
+	int numtrials= atoi(argv[3]);
+	int dim= atoi(argv[4]);
+		
+	// smaller test cases - check by hand!
+	// uncomment below for dim = 2
+	// printf("%f: from %i to %i\n", g[0][0].weight, g[0][0].source, g[0][0].target);
+	// printf("%f: from %i to %i\n", g[0][1].weight, g[0][1].source, g[0][1].target);
+	// printf("%f: from %i to %i\n", g[1][0].weight, g[1][0].source, g[1][0].target);
+	// printf("%f: from %i to %i\n", g[1][1].weight, g[1][1].source, g[1][1].target);
+	// uncomment below for dim = 3
+	// printf("%f: from %i to %i\n", g[0][2].weight, g[0][2].source, g[0][2].target);
+	// printf("%f: from %i to %i\n", g[0][3].weight, g[0][3].source, g[0][3].target);
+	// printf("%f: from %i to %i\n", g[1][2].weight, g[1][2].source, g[1][2].target);
+	// printf("%f: from %i to %i\n", g[2][0].weight, g[2][0].source, g[2][0].target);
+	// printf("%f: from %i to %i\n", g[2][1].weight, g[2][1].source, g[2][1].target);
+	// printf("%f: from %i to %i\n", g[2][2].weight, g[2][2].source, g[2][2].target);
+	// uncomment below for dim = 4
+	// printf("%f: from %i to %i\n", g[1][3].weight, g[1][3].source, g[1][3].target);
+	// printf("%f: from %i to %i\n", g[2][3].weight, g[2][3].source, g[2][3].target);
+	// printf("%f: from %i to %i\n", g[3][0].weight, g[3][0].source, g[3][0].target);
+	// printf("%f: from %i to %i\n", g[3][1].weight, g[3][1].source, g[3][1].target);
+	// printf("%f: from %i to %i\n", g[3][2].weight, g[3][2].source, g[3][2].target);
+	// printf("%f: from %i to %i\n", g[3][3].weight, g[3][3].source, g[3][3].target);
 
-	printf("%f: from %i to %i\n", g[0][3].weight, g[0][3].source, g[0][3].target);
-	printf("%f: from %i to %i\n", g[1][3].weight, g[1][3].source, g[1][3].target);
-	printf("%f: from %i to %i\n", g[2][3].weight, g[2][3].source, g[2][3].target);
-	printf("%f: from %i to %i\n", g[3][0].weight, g[3][0].source, g[3][0].target);
-	printf("%f: from %i to %i\n", g[3][1].weight, g[3][1].source, g[3][1].target);
-	printf("%f: from %i to %i\n", g[3][2].weight, g[3][2].source, g[3][2].target);
-	printf("%f: from %i to %i\n", g[3][3].weight, g[3][3].source, g[3][3].target);
+	// time calculation
+	// clock_t begin, end;
+	// double time_spent;
 
-	// printf("%f: from %i to %i\n", g[0][4].weight, g[0][4].source, g[0][4].target);
-	// printf("%f: from %i to %i\n", g[1][4].weight, g[1][4].source, g[1][4].target);
-	// printf("%f: from %i to %i\n", g[2][4].weight, g[2][4].source, g[2][4].target);
-	// printf("%f: from %i to %i\n", g[3][4].weight, g[3][4].source, g[3][4].target);
-	fflush(stdout);
-	// printf("%f: from %i to %i\n", g[3][4].weight, g[3][4].source, g[3][4].target);
-	// printf("%f: from %i to %i\n", g[3][4].weight, g[3][4].source, g[3][4].target);
-	// printf("%f: from %i to %i\n", g[3][4].weight, g[3][3].source, g[3][4].target);
-
-	// minheap* m = malloc(sizeof(minheap));
-	// minheap temp = {NULL, NULL, 1};
-	// memcpy(m, &temp, sizeof(minheap));
-	// g[0][0].weight = 0;
-	// g[0][1].weight = 1;
-	// g[0][2].weight = 3;
-	// g[0][3].weight = 2;
-	// for (int i = 0; i<numpoints; i++){
-	// 	insert(m, create_node(&g[0][i]));
-	// 	printf("%i\n", i);
-	// 	heap_printer(m->root);
-	// }
-
-	float total = prim(g, parray, numpoints, 0);
-	// printf("%f heavy fat woman\n", total);
+	// begin = clock();
+	/* here, do your time-consuming job */
 	
+	float final = 0.0;
+	for (int trial = 0; trial < numtrials; trial++) {
+		graph_node* parray = malloc(sizeof(graph_node) * numpoints);
+		edge** g = initiate_graph(numpoints, dim, parray);
 
-	// minheap* m = malloc(sizeof(minheap));
-	// minheap temp = {NULL, NULL, 1};
-	// memcpy(m, &temp, sizeof(minheap));
-	// printf("printing heap\n");
-	// insert(m, create_node(1.));
-	// heap_printer(m->root);	
-	// insert(m, create_node(2.));
-	// insert(m, create_node(3.));
-	// insert(m, create_node(5.));
-	// insert(m, create_node(4.));
-	// deletemin(m);
-	// deletemin(m);
-	// deletemin(m);
-	// insert(m, create_node(6.));
-	// insert(m, create_node(333.));
-	// insert(m, create_node(5.));
-	// deletemin(m);
+		// if we prune off too many edges, we will get a zero-weighted MST
+		float results= prim(g,parray, numpoints, 0);
+		final+= results;
 
-	// printf("printing new heap\n");
-	// heap_printer(m->root);
-	// heap_checker(m->root);
+		free(parray);
+		free_graph(g, numpoints);
+	}
 
+	// end = clock();
+	// time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+	final = final / numtrials;
 
+	// print results
+	// printf("%f Seconds \n", time_spent);
+	printf("%f %i %i %i\n", final, numpoints, numtrials, dim);
+
+	return 0;
 }
