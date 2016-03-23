@@ -42,11 +42,28 @@ void arithmetic_matrix(int flag, int **m1, int **m2, int **m3, int n, int a1, in
 	}
 }
 
+void prettyprinter(int **m, int n) {
+	for (int i = 0; i < n; i++) {
+		for (int j = 0; j < n; j++) {
+			printf("%i ", m[i][j]);
+		}
+		printf("\n");
+	}
+}
+
 void matrix_mult(int **m1, int **m2, int **m3, int n, int a1, int b1, int a2, int b2) {
 	for (int i = 0; i < n; i++) {
 		for (int k = 0; k < n; k++) {
 			for (int j = 0; j < n; j++) {
 				// printf("m3: [%i, %i] = %i\n", i, j, m3[i][j]);
+				// printf("a1 = %i, b2 = %i\n", a2, b2);
+				// printf("No-2: %i\n", m2[k+a2][j+b2]);
+				// printf("leading to: %i, %i\n", k+a2, j+b2);
+				// printf("No-1: %i\n", m1[i+a1][k+b1]);
+				
+				// printf("in matrix_mult: %i, %i, %i, %i\n", i+a1, k+b1, k+a2, j+b2);
+				// printf("doesthissegfault?\n");
+				
 				m3[i][j] += m1[i+a1][k+b1] * m2[k+a2][j+b2];
 			}
 		}
@@ -61,26 +78,19 @@ void clear_matrix(int **m, int n){
 	}
 }
 
-void prettyprinter(int **m, int n) {
-	for (int i = 0; i < n; i++) {
-		for (int j = 0; j < n; j++) {
-			printf("%i ", m[i][j]);
-		}
-		printf("\n");
-	}
-}
-
 int *** setup_strassens(int **m1, int **m2, int n, int a1, int b1, int a2, int b2, int n0);
 
 void strassens(int **m1, int **m2, int **m3, int n, int a1, int b1, int a2, int b2, int n0) {
 	if (n <= n0) {
 		// printf("hi\n");
-		printf("and then we multiply like 7 times\n");
+		printf("and then we multiply like 7 times, n=%i\n", n);
+		// printf("%i, %i, %i, %i\n", a1,b1,a2,b2);
 		matrix_mult(m1, m2, m3, n, a1, b1, a2, b2);
 	}
 	else {
-		printf("Look at us Strassening and shit\n");
+		printf("Look at us Strassening and shit, n=%i\n", n);
 		int*** p = setup_strassens(m1, m2, n, a1, b1, a2, b2, n0);
+
 		// Top Left Quadrant
 		arithmetic_matrix(1, p[4], p[5], p[5], n/2, 0,0,0,0,0,0);
 		arithmetic_matrix(1, p[3], p[5], p[5], n/2, 0,0,0,0,0,0);
@@ -116,15 +126,19 @@ int*** setup_strassens(int **m1, int **m2, int n, int a1, int b1, int a2, int b2
 		p[i] = init_matrix(n/2);
 	}
 	int **temp_matrix1 = init_matrix(n/2);
+	printf("check1, n=%i\n", n);
 	arithmetic_matrix(-1, m2, m2, temp_matrix1, n/2, a1, b1+n/2, a2+n/2, b2+n/2,0,0);
 	strassens(m1, temp_matrix1, p[0], n/2, a1,b1, a2,b2, n0);
 
+	printf("check2, n=%i\n", n);
 	arithmetic_matrix(1, m1, m1, temp_matrix1, n/2, a1,b1, a2,b2+n/2,0,0);
 	strassens(temp_matrix1, m2, p[1],n/2, a1,b1, a2+n/2,b2+n/2, n0);
 
+	printf("check3, n=%i\n", n);
 	arithmetic_matrix(1,m1,m1,temp_matrix1, n/2, a1+n/2, b1, a2+n/2,b2+n/2,0,0);
 	strassens(temp_matrix1, m2, p[2],n/2, a1,b1, a2,b2, n0);
 
+	printf("check4, n=%i\n", n);
 	arithmetic_matrix(-1, m2, m2, temp_matrix1, n/2, a1+n/2,b1,a2,b2,0,0);
 	strassens(m1, temp_matrix1, p[3], n/2, a1+n/2,b1+n/2, a2,b2, n0);
 	
@@ -143,6 +157,10 @@ int*** setup_strassens(int **m1, int **m2, int n, int a1, int b1, int a2, int b2
 	strassens(temp_matrix1,temp_matrix2, p[6], n/2, a1,b1, a2,b2, n0);
 	free_matrix(temp_matrix1,n/2);
 	free_matrix(temp_matrix2,n/2);
+
+	// for (int i = 0; i < 7; i++) {
+	// 	prettyprinter(p[i], n/2);
+	// }
 
 	return p;
 }
