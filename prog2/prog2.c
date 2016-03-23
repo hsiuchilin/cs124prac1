@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <math.h>
 
 int **init_matrix(int n) {
 	int **m = malloc(sizeof(int*) * n);
@@ -73,13 +74,10 @@ int *** setup_strassens(int **m1, int **m2, int n, int a1, int b1, int a2, int b
 
 void strassens(int **m1, int **m2, int **m3, int n, int a1, int b1, int a2, int b2, int n0) {
 	if (n <= n0) {
-		// printf("hi\n");
-		// printf("and then we multiply like 7 times\n");
-		printf("hi\n");
 		matrix_mult(m1, m2, m3, n, a1, b1, a2, b2);
 	}
 	else {
-		printf("Look at us Strassening and shit\n");
+
 		int*** p = setup_strassens(m1, m2, n, a1, b1, a2, b2, n0);
 		// Top Left Quadrant
 		arithmetic_matrix(1, p[4], p[5], p[5], n/2, 0,0,0,0,0,0);
@@ -182,15 +180,20 @@ void diagonal(int** m, int n){
 	}
 }
 
-int *** filematrices(char* filename, int d){
+int *** filematrices(char* filename, int d, int padded_n){
 	FILE *f = fopen(filename, "r");
 	int ***matrices = malloc(sizeof(int**)*2);
-	matrices[0] = init_matrix(d);
-	matrices[1] = init_matrix(d);
+	matrices[0] = init_matrix(padded_n);
+	matrices[1] = init_matrix(padded_n);
 	for(int k = 0; k <2; k++){
-		for (int i = 0; i < d; i++){
-			for (int j = 0; j<d; j++){
-				fscanf(f, "%i", &(matrices[k][i][j]));
+		for (int i = 0; i < padded_n; i++){
+			for (int j = 0; j<padded_n; j++){
+				if(i > d-1||j>d-1){
+					matrices[k][i][j] = 0;
+				}
+				else{
+					fscanf(f, "%i", &(matrices[k][i][j]));
+				}
 			}
 		}
 	}
@@ -199,15 +202,27 @@ int *** filematrices(char* filename, int d){
 }
 
 int main(int argc, char* argv[]) {
-	int** res = init_matrix(atoi(argv[3]));
-	int ***ms= filematrices(argv[2],atoi(argv[3]));
-	prettyprinter(ms[0],atoi(argv[3]));
-	prettyprinter(ms[1],atoi(argv[3]));
-	strassens(ms[0], ms[1], res, atoi(argv[3]), 0,0,0,0, 1);
-	// diagonal(res, atoi(argv[3]));
-	prettyprinter(res,atoi(argv[3]));
-	free_matrix(res, atoi(argv[3]));
-	free_matrix(ms[0], atoi(argv[3]));
-	free_matrix(ms[1], atoi(argv[3]));
+	int n0 = 3;
+	int num = (atoi(argv[3])+1)/n0;
+	int k = 0;
+	while(num >= 1){
+		k++;
+		num = num/2;
+	}
+	int padded_n = pow(2,k) * n0;
+
+	int** res = init_matrix(padded_n);
+	int ***ms= filematrices(argv[2],atoi(argv[3]), padded_n);
 	
+	// prettyprinter(ms[0],atoi(argv[3]));
+	// prettyprinter(ms[0], padded_n);
+	// prettyprinter(ms[1],atoi(argv[3]));
+	
+	strassens(ms[0], ms[1], res, padded_n, 0,0,0,0, n0);
+	prettyprinter(res, atoi(argv[3]));
+	prettyprinter(res, padded_n);
+	diagonal(res, atoi(argv[3]));
+	free_matrix(res, padded_n);
+	free_matrix(ms[0], padded_n);
+	free_matrix(ms[1], padded_n);
 }
