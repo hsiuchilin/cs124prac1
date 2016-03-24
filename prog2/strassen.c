@@ -232,7 +232,7 @@ int main(int argc, char* argv[]) {
 	time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
 	// unsigned long long msec = diff * 1000 / CLOCKS_PER_SEC;
 	printf("n0=%i: Time taken: %f seconds\n", n0, time_spent);
-	prettyprinter(res, atoi(argv[2]));
+	// prettyprinter(res, atoi(argv[2]));
 	// prettyprinter(res, padded_n);
 	// diagonal(res, atoi(argv[2]));
 	free_matrix(res, padded_n);
