@@ -6,6 +6,7 @@
 #include <time.h>
 #include <math.h>
 
+// initialize a matrix, given dimension n
 int **init_matrix(int n) {
 	int **m = malloc(sizeof(int*) * n);
 	for (int i = 0; i < n; i++) {
@@ -17,14 +18,17 @@ int **init_matrix(int n) {
 	return m;
 }
 
+// free a stored matrix, given dimension
 void free_matrix(int** m, int n){
-	for (int i =0; i<n; i++){
+	for (int i = 0; i<n; i++){
 		free(m[i]);
 	}
 	free(m);
 }
 
-void arithmetic_matrix(int flag, int **m1, int **m2, int **m3, int n, int a1, int b1, int a2, int b2, int a3, int b3) {
+// matrix addition/subtraction, given relevant indices
+void arithmetic_matrix(int flag, int **m1, int **m2, int **m3, int n,
+	int a1, int b1, int a2, int b2, int a3, int b3) {
 	if (flag == 1) {
 		// addition
 		for (int i = 0; i < n; i++) {
@@ -43,6 +47,7 @@ void arithmetic_matrix(int flag, int **m1, int **m2, int **m3, int n, int a1, in
 	}
 }
 
+// print out a matrix, given dimension
 void prettyprinter(int **m, int n) {
 	for (int i = 0; i < n; i++) {
 		for (int j = 0; j < n; j++) {
@@ -52,6 +57,7 @@ void prettyprinter(int **m, int n) {
 	}
 }
 
+// traditional matrix multiplication, given relevant indices
 void matrix_mult(int **m1, int **m2, int **m3, int n, int a1, int b1, int a2, int b2) {
 	for (int i = 0; i < n; i++) {
 		for (int k = 0; k < n; k++) {
@@ -62,6 +68,7 @@ void matrix_mult(int **m1, int **m2, int **m3, int n, int a1, int b1, int a2, in
 	}
 }
 
+// clear out a matrix, given dimension - used for testing
 void clear_matrix(int **m, int n){
 	for (int i =0; i< n; i++){
 		for (int j = 0; j <n; j++){
@@ -72,12 +79,13 @@ void clear_matrix(int **m, int n){
 
 int *** setup_strassens(int **m1, int **m2, int n, int a1, int b1, int a2, int b2, int n0);
 
+// Strassen's Algorithm
 void strassens(int **m1, int **m2, int **m3, int n, int a1, int b1, int a2, int b2, int n0) {
 	if (n <= n0) {
 		matrix_mult(m1, m2, m3, n, a1, b1, a2, b2);
 	}
 	else {
-
+		// list of P matrices
 		int*** p = setup_strassens(m1, m2, n, a1, b1, a2, b2, n0);
 
 		// Top Left Quadrant
@@ -104,11 +112,10 @@ void strassens(int **m1, int **m2, int **m3, int n, int a1, int b1, int a2, int 
 		free_matrix(p[3],n/2);
 
 		free(p);
-		// printf("hi\n");
 	}
 }
 
-
+// set up p matrices
 int*** setup_strassens(int **m1, int **m2, int n, int a1, int b1, int a2, int b2, int n0) {
 	int ***p = malloc(sizeof(int**) * 7);
 	for (int i = 0; i < 7; i++) {
@@ -152,6 +159,7 @@ int*** setup_strassens(int **m1, int **m2, int n, int a1, int b1, int a2, int b2
 	return p;
 }
 
+// create identity matrix, given dimension - used for testing
 int **identity(int n) {
 	int **return_matrix = malloc(sizeof(int*) * n);
 	for (int i = 0; i < n; i++) {
@@ -165,10 +173,10 @@ int **identity(int n) {
 			}
 		}
 	}
-
 	return return_matrix;
 }
 
+// create a randomly populated matrix, given dimension
 int **rand_matrix(int n) {
 	int **m = init_matrix(n);
 	for (int i = 0; i < n; i++) {
@@ -179,12 +187,14 @@ int **rand_matrix(int n) {
 	return m;
 }
 
+// print out diagonal of given matrix
 void diagonal(int** m, int n){
 	for (int i = 0; i < n; i++){
 		printf("%i\n", m[i][i]);
 	}
 }
 
+// read in matrices from file
 int *** filematrices(char* filename, int d, int padded_n){
 	FILE *f = fopen(filename, "r");
 	int ***matrices = malloc(sizeof(int**)*2);
@@ -207,10 +217,13 @@ int *** filematrices(char* filename, int d, int padded_n){
 }
 
 int main(int argc, char* argv[]) {
+	// set cross-over point - CHANGE AS NECESSARY
 	int n0 = 65;
+
+	// calculate and insert padding as necessary
 	int num = (atoi(argv[2])+1)/n0;
 	int k = 0;
-	while(num >= 1){
+	while(num >= 1) {
 		k++;
 		num = num/2;
 	}
@@ -219,22 +232,19 @@ int main(int argc, char* argv[]) {
 	int** res = init_matrix(padded_n);
 	int ***ms= filematrices(argv[3],atoi(argv[2]), padded_n);
 	
-	// prettyprinter(ms[0],atoi(argv[2]));
-	// prettyprinter(ms[0], padded_n);
-	// printf("second\n");
-	// prettyprinter(ms[1],padded_n);
-	clock_t begin, end;
-	double time_spent;
+	// timer
+	// clock_t begin, end;
+	// double time_spent;
 
-	begin = clock();
+	// begin = clock();
 	strassens(ms[0], ms[1], res, padded_n, 0,0,0,0, n0);
-	end = clock();
-	time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
-	// unsigned long long msec = diff * 1000 / CLOCKS_PER_SEC;
-	printf("n0=%i: Time taken: %f seconds\n", n0, time_spent);
+	// end = clock();
+	// time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+	// printf("n0=%i: Time taken: %f seconds\n", n0, time_spent);
+
 	// prettyprinter(res, atoi(argv[2]));
-	// prettyprinter(res, padded_n);
-	// diagonal(res, atoi(argv[2]));
+	diagonal(res, atoi(argv[2]));
+
 	free_matrix(res, padded_n);
 	free_matrix(ms[0], padded_n);
 	free_matrix(ms[1], padded_n);
